@@ -1,0 +1,19 @@
+build/
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.packages
+*.g.dart
+android/.gradle/
+android/local.properties
+android/captures/
+ios/Pods/
+ios/.symlinks/
+.idea/
+.vscode/
+*.iml
+assets/the-chenab-times-b5de5-37da4ea8fa8a.json
+lib/AI Keys .txt
+.env
+android/app/google-services.json
+lib/open router key.txt

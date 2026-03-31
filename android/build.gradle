@@ -1,0 +1,52 @@
+buildscript {
+    ext.kotlin_version = '2.1.0' // Updated to modern version
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.3.1' // Updated AGP to be compatible
+        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath 'com.google.gms:google-services:4.4.1' // Updated to a more recent version
+    }
+}
+
+allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+rootProject.buildDir = '../build'
+
+// Apply the JVM toolchain to all subprojects for consistency.
+subprojects {
+    project.buildDir = "${rootProject.buildDir}/${project.name}"
+
+    // Lazily configure Kotlin modules to use the Java 17 toolchain.
+    project.plugins.withType(org.jetbrains.kotlin.gradle.plugin.KotlinBasePlugin).configureEach {
+        kotlin {
+            jvmToolchain(17)
+        }
+    }
+
+    // Also, ensure Android compile options are consistent.
+    project.plugins.withType(com.android.build.gradle.BasePlugin).configureEach {
+        android {
+            compileOptions {
+                sourceCompatibility = JavaVersion.VERSION_17
+                targetCompatibility = JavaVersion.VERSION_17
+            }
+        }
+    }
+}
+
+subprojects {
+    project.evaluationDependsOn(':app')
+}
+
+tasks.register("clean", Delete) {
+    delete rootProject.buildDir
+}

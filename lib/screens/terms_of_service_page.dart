@@ -1,0 +1,194 @@
+import 'package:flutter/material.dart';
+
+class TermsOfServicePage extends StatelessWidget {
+  const TermsOfServicePage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Terms of Service"),
+      ),
+      body: const SingleChildScrollView(
+        padding: EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+
+            Text(
+              "Terms of Service – The Chenab Times App",
+              style: TextStyle(
+                fontSize: 22,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+
+            SizedBox(height: 16),
+
+            Text(
+              "Welcome to The Chenab Times mobile application (“App”). The App is owned "
+              "and operated by The Chenab Times Foundation (“we”, “us”, “our”).\n\n"
+              "By downloading, installing, or using the App, you agree to be bound by "
+              "these Terms of Service.",
+              style: TextStyle(fontSize: 16, height: 1.4),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 1
+            Text(
+              "1. Use of the App",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "• You must be at least 13 years old to use the App.\n"
+              "• You are responsible for maintaining the confidentiality of your account credentials.",
+              style: TextStyle(fontSize: 16, height: 1.5),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 2
+            Text(
+              "2. Content",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "• All news articles, videos, and other content are protected by copyright and are "
+              "the property of The Chenab Times Foundation or its licensors.\n"
+              "• You may read, watch, and share content via built-in sharing tools. Any reproduction, "
+              "redistribution, or commercial use is prohibited without prior written permission.",
+              style: TextStyle(fontSize: 16, height: 1.5),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 3
+            Text(
+              "3. User Account & Saved Articles",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "• Account creation is optional and used only for backing up and restoring your saved articles.\n"
+              "• All saved articles and reading data are stored exclusively on your device (on-device storage). "
+              "We do not store, collect, or have access to your saved articles or reading history.",
+              style: TextStyle(fontSize: 16, height: 1.5),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 4
+            Text(
+              "4. Prohibited Conduct",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "You agree not to:\n"
+              "• Use the App for any unlawful purpose\n"
+              "• Interfere with or disrupt the App\n"
+              "• Attempt to gain unauthorized access to any portion of the App",
+              style: TextStyle(fontSize: 16, height: 1.5),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 5
+            Text(
+              "5. Termination",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "We may suspend or terminate your access to the App at any time for violating these Terms.",
+              style: TextStyle(fontSize: 16, height: 1.4),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 6
+            Text(
+              "6. Limitation of Liability",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "The App is provided “as is”. We do not guarantee uninterrupted or error-free operation. "
+              "To the maximum extent permitted by law, we shall not be liable for any indirect, "
+              "incidental, or consequential damages.",
+              style: TextStyle(fontSize: 16, height: 1.4),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 7
+            Text(
+              "7. Governing Law",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "These Terms shall be governed by the laws of India. Any disputes shall be subject to the "
+              "exclusive jurisdiction of courts in Doda, Jammu & Kashmir.",
+              style: TextStyle(fontSize: 16, height: 1.4),
+            ),
+
+            SizedBox(height: 20),
+
+            // Section 8
+            Text(
+              "8. Changes to Terms",
+              style: TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              "We may update these Terms from time to time. Continued use of the App after changes "
+              "constitutes acceptance of the new Terms.",
+              style: TextStyle(fontSize: 16, height: 1.4),
+            ),
+
+            SizedBox(height: 20),
+
+            // Contact
+            Text(
+              "Contact: contact+legal@thechenabtimes.com",
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+
+            SizedBox(height: 30),
+          ],
+        ),
+      ),
+    );
+  }
+}
