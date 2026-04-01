@@ -79,35 +79,6 @@ class _DonateScreenState extends State<DonateScreen> {
     }
   }
 
-  void _openCheckout(int amount) {
-    final razorpayKey = 'rzp_live_SXocvdfq7NW63I';
-    if (razorpayKey == null || razorpayKey.isEmpty) {
-      _showStatusDialog(
-        isSuccess: false,
-        title: 'Configuration Error',
-        message: 'The payment gateway is not configured correctly. Please contact support.',
-      );
-      return;
-    }
-
-    if (amount == 0) return;
-
-    var options = {
-      'key': razorpayKey,
-      'amount': amount * 100,
-      'name': 'The Chenab Times',
-      'description': 'Donation',
-      'prefill': {'contact': '', 'email': ''},
-    };
-
-    try {
-      _razorpay.open(options);
-    } catch (e) {
-      debugPrint('Error: ${e.toString()}');
-      _showStatusDialog(
-        isSuccess: false,
-        title: 'Error',
-        message: 'An unexpected error occurred. Please try again later.',
       );
     }
   }
