@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:razorpay_flutter/razorpay_flutter.dart';
 
 class DonateScreen extends StatefulWidget {
@@ -51,7 +50,7 @@ class _DonateScreenState extends State<DonateScreen> {
   }
 
   void _openCheckout(int amount) {
-    final razorpayKey = dotenv.env['RAZORPAY_KEY'];
+    final razorpayKey = 'rzp_live_SXocvdfq7NW63I';
     if (razorpayKey == null || razorpayKey.isEmpty) {
       _showStatusDialog(
         isSuccess: false,
