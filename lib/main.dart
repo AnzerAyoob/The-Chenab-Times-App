@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
@@ -39,6 +40,17 @@ void main() async {
 
     try {
       await Firebase.initializeApp();
+      // Create high importance notification channel
+      const AndroidNotificationChannel channel = AndroidNotificationChannel(
+        "high_importance_channel",
+        "High Importance Notifications",
+        description: "This channel is used for important notifications.",
+        importance: Importance.high,
+      );
+      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+      await flutterLocalNotificationsPlugin
+          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+          ?.createNotificationChannel(channel);
       // Initialize FCM
       final fcm = FirebaseMessaging.instance;
       await fcm.requestPermission();
