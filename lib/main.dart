@@ -80,6 +80,22 @@ void main() async {
           MaterialPageRoute(builder: (_) => const NotificationScreen()),
         );
       });
+      // Handle notification when app is completely closed
+      RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
+      if (initialMessage != null) {
+        final data = initialMessage.data;
+        final postId = int.tryParse(data["post_id"] ?? "");
+        if (postId != null) {
+          Article? article = await RssService().fetchArticleById(postId);
+          if (article != null) {
+            navigatorKey.currentState?.push(
+              MaterialPageRoute(
+                builder: (_) => ArticleScreen(articles: [article], initialIndex: 0),
+              ),
+            );
+          }
+        }
+      }
 
 
       await ThemeService.instance.loadTheme();
