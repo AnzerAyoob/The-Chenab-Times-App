@@ -80,23 +80,6 @@ void main() async {
           MaterialPageRoute(builder: (_) => const NotificationScreen()),
         );
       });
-        final postId = int.tryParse(data["post_id"] ?? "");
-        if (postId != null) {
-          Article? article = await RssService().fetchArticleById(postId);
-          if (article != null) {
-            navigatorKey.currentState?.push(
-              MaterialPageRoute(
-                builder: (_) => ArticleScreen(articles: [article], initialIndex: 0),
-              ),
-            );
-            return;
-          }
-        }
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (_) => const NotificationScreen()),
-        );
-      });
-      });
 
 
       await ThemeService.instance.loadTheme();
