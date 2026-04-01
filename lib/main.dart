@@ -28,9 +28,6 @@ import 'services/theme_service.dart';
 // GLOBAL NAVIGATOR KEY
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  });
-}
-
 @pragma('vm:entry-point')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
@@ -47,6 +44,28 @@ void main() async {
       await fcm.requestPermission();
       await fcm.subscribeToTopic("all");
       FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+      // FCM Foreground Handler
+      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+        final notification = message.notification;
+        if (notification != null) {
+          final model = NotificationModel(
+            notificationId: message.messageId ?? DateTime.now().toString(),
+            title: notification.title ?? "The Chenab Times",
+            body: notification.body ?? "",
+            imageUrl: null,
+            receivedAt: DateTime.now(),
+            article: null,
+            postId: null,
+          );
+          await notificationProvider.addNotification(model);
+        }
+      });
+      // FCM Click Handler
+      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+        navigatorKey.currentState?.push(
+          MaterialPageRoute(builder: (_) => const NotificationScreen()),
+        );
+      });
 
 
       await ThemeService.instance.loadTheme();
