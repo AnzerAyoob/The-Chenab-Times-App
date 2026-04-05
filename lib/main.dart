@@ -34,6 +34,22 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 @pragma('vm:entry-point')
 Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp();
+  final notificationProvider = NotificationProvider();
+  await notificationProvider.loadNotifications();
+  final notification = message.notification;
+  final data = message.data;
+  if (notification != null) {
+    final model = NotificationModel(
+      notificationId: message.messageId ?? DateTime.now().toString(),
+      title: notification.title ?? "The Chenab Times",
+      body: notification.body ?? "",
+      imageUrl: data["image"],
+      receivedAt: DateTime.now(),
+      article: null,
+      postId: int.tryParse(data["post_id"] ?? ""),
+    );
+    await notificationProvider.addNotification(model);
+  }
 }
 void main() async {
   runZonedGuarded(() async {
