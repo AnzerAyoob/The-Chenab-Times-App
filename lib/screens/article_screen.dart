@@ -162,7 +162,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
             controller: _pageController,
             itemCount: widget.articles.length,
             onPageChanged: _onPageChanged,
-            itemBuilder: (context, index) => _ArticlePage(article: widget.articles[index]),
+            itemBuilder: (context, index) => _ArticlePage(key: ValueKey(widget.articles[index].link), article: widget.articles[index]),
           ),
         );
       },
