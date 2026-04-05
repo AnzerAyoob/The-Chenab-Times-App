@@ -58,7 +58,7 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     CategoryNewsTab(categoryId: 398),
   ];
 
-  @override
+  Timer? _refreshTimer;
   void initState() {
     super.initState();
     // Auto refresh every 5 minutes
@@ -67,7 +67,6 @@ class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateM
     });
     // Initialize the tab controller.
     _tabController = TabController(length: _tabs.length, vsync: this);
-  Timer? _refreshTimer;
   }
 
   @override
