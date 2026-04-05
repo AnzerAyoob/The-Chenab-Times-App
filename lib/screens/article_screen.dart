@@ -172,7 +172,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
 
 class _ArticlePage extends StatefulWidget {
   final Article article;
-  const _ArticlePage({required this.article});
+  const _ArticlePage({super.key, required this.article});
 
   @override
   __ArticlePageState createState() => __ArticlePageState();
