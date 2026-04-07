@@ -160,7 +160,7 @@ void main() async {
       // Background pre-fetch summaries
       Future.delayed(const Duration(seconds: 3), () async {
         try {
-          final articles = await RssService().fetchArticles();
+          final articles = await RssService().fetchPostsPage(perPage: 10);
           for (final article in articles.take(10)) {
             await SummarizationService.instance.summarizeArticle(
               article.content ?? article.excerpt ?? "",
