@@ -27,6 +27,7 @@ import 'screens/search_screen.dart';
 import 'screens/splash_screen.dart';
 import 'services/database_service.dart';
 import 'services/language_service.dart';
+import 'services/location_service.dart';
 import 'services/theme_service.dart';
 
 // GLOBAL NAVIGATOR KEY
@@ -52,147 +53,164 @@ Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
     await notificationProvider.addNotification(model);
   }
 }
-void main() async {
-  runZonedGuarded(() async {
-    WidgetsFlutterBinding.ensureInitialized();
-    final notificationProvider = NotificationProvider();
 
-    try {
-      await Firebase.initializeApp();
-      // Create high importance notification channel
-      const AndroidNotificationChannel channel = AndroidNotificationChannel(
-        "high_importance_channel",
-        "High Importance Notifications",
-        description: "This channel is used for important notifications.",
-        importance: Importance.high,
-      );
-      final flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
-      await flutterLocalNotificationsPlugin
-          .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-          ?.createNotificationChannel(channel);
-      // Initialize FCM
-      final fcm = FirebaseMessaging.instance;
-      await fcm.requestPermission();
-      await fcm.subscribeToTopic("all");
-      FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
-      // FCM Foreground Handler
-      FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
-        final notification = message.notification;
-        final data = message.data;
-        if (notification != null) {
-          final model = NotificationModel(
-            notificationId: message.messageId ?? DateTime.now().toString(),
-            title: notification.title ?? "The Chenab Times",
-            body: notification.body ?? "",
-            imageUrl: data["image"],
-            receivedAt: DateTime.now(),
-            article: null,
-            postId: int.tryParse(data["post_id"] ?? ""),
-          );
-          await notificationProvider.addNotification(model);
-          // Show rich notification with image
-          final imageUrl = data["image"] ?? "";
-          BigPictureStyleInformation? bigPictureStyle;
-          if (imageUrl.isNotEmpty) {
-            final http.Response response = await http.get(Uri.parse(imageUrl));
-            final Uint8List imageBytes = response.bodyBytes;
-            bigPictureStyle = BigPictureStyleInformation(
-              ByteArrayAndroidBitmap(imageBytes),
-              largeIcon: ByteArrayAndroidBitmap(imageBytes),
-            );
-          }
-          await flutterLocalNotificationsPlugin.show(
-            notification.hashCode,
-            notification.title,
-            notification.body,
-            NotificationDetails(
-              android: AndroidNotificationDetails(
-                "high_importance_channel",
-                "High Importance Notifications",
-                importance: Importance.high,
-                priority: Priority.high,
-                styleInformation: bigPictureStyle,
-              ),
-            ),
-          );
-        }
-      });
-      // FCM Click Handler
-      FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
-        final data = message.data;
-        final postId = int.tryParse(data["post_id"] ?? "");
-        if (postId != null) {
-          Article? article = await RssService().fetchArticleById(postId);
-          if (article != null) {
-            navigatorKey.currentState?.push(
-              MaterialPageRoute(
-                builder: (_) => ArticleScreen(articles: [article], initialIndex: 0),
-              ),
-            );
-            return;
-          }
-        }
-        navigatorKey.currentState?.push(
-          MaterialPageRoute(builder: (_) => const NotificationScreen()),
+void main() async {
+  runZonedGuarded(
+    () async {
+      WidgetsFlutterBinding.ensureInitialized();
+      final notificationProvider = NotificationProvider();
+
+      try {
+        await Firebase.initializeApp();
+        // Create high importance notification channel
+        const AndroidNotificationChannel channel = AndroidNotificationChannel(
+          "high_importance_channel",
+          "High Importance Notifications",
+          description: "This channel is used for important notifications.",
+          importance: Importance.high,
         );
-      });
-      // Handle notification when app is completely closed
-      RemoteMessage? initialMessage = await FirebaseMessaging.instance.getInitialMessage();
-      if (initialMessage != null) {
-        final data = initialMessage.data;
-        final postId = int.tryParse(data["post_id"] ?? "");
-        if (postId != null) {
-          Article? article = await RssService().fetchArticleById(postId);
-          if (article != null) {
-            navigatorKey.currentState?.push(
-              MaterialPageRoute(
-                builder: (_) => ArticleScreen(articles: [article], initialIndex: 0),
+        final flutterLocalNotificationsPlugin =
+            FlutterLocalNotificationsPlugin();
+        await flutterLocalNotificationsPlugin
+            .resolvePlatformSpecificImplementation<
+              AndroidFlutterLocalNotificationsPlugin
+            >()
+            ?.createNotificationChannel(channel);
+        // Initialize FCM
+        final fcm = FirebaseMessaging.instance;
+        await fcm.requestPermission();
+        await fcm.subscribeToTopic("all");
+        FirebaseMessaging.onBackgroundMessage(_firebaseBackgroundHandler);
+        // FCM Foreground Handler
+        FirebaseMessaging.onMessage.listen((RemoteMessage message) async {
+          final notification = message.notification;
+          final data = message.data;
+          if (notification != null) {
+            final model = NotificationModel(
+              notificationId: message.messageId ?? DateTime.now().toString(),
+              title: notification.title ?? "The Chenab Times",
+              body: notification.body ?? "",
+              imageUrl: data["image"],
+              receivedAt: DateTime.now(),
+              article: null,
+              postId: int.tryParse(data["post_id"] ?? ""),
+            );
+            await notificationProvider.addNotification(model);
+            // Show rich notification with image
+            final imageUrl = data["image"] ?? "";
+            BigPictureStyleInformation? bigPictureStyle;
+            if (imageUrl.isNotEmpty) {
+              final http.Response response = await http.get(
+                Uri.parse(imageUrl),
+              );
+              final Uint8List imageBytes = response.bodyBytes;
+              bigPictureStyle = BigPictureStyleInformation(
+                ByteArrayAndroidBitmap(imageBytes),
+                largeIcon: ByteArrayAndroidBitmap(imageBytes),
+              );
+            }
+            await flutterLocalNotificationsPlugin.show(
+              notification.hashCode,
+              notification.title,
+              notification.body,
+              NotificationDetails(
+                android: AndroidNotificationDetails(
+                  "high_importance_channel",
+                  "High Importance Notifications",
+                  importance: Importance.high,
+                  priority: Priority.high,
+                  styleInformation: bigPictureStyle,
+                ),
               ),
             );
           }
+        });
+        // FCM Click Handler
+        FirebaseMessaging.onMessageOpenedApp.listen((
+          RemoteMessage message,
+        ) async {
+          final data = message.data;
+          final postId = int.tryParse(data["post_id"] ?? "");
+          if (postId != null) {
+            Article? article = await RssService().fetchArticleById(postId);
+            if (article != null) {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ArticleScreen(articles: [article], initialIndex: 0),
+                ),
+              );
+              return;
+            }
+          }
+          navigatorKey.currentState?.push(
+            MaterialPageRoute(builder: (_) => const NotificationScreen()),
+          );
+        });
+        // Handle notification when app is completely closed
+        RemoteMessage? initialMessage = await FirebaseMessaging.instance
+            .getInitialMessage();
+        if (initialMessage != null) {
+          final data = initialMessage.data;
+          final postId = int.tryParse(data["post_id"] ?? "");
+          if (postId != null) {
+            Article? article = await RssService().fetchArticleById(postId);
+            if (article != null) {
+              navigatorKey.currentState?.push(
+                MaterialPageRoute(
+                  builder: (_) =>
+                      ArticleScreen(articles: [article], initialIndex: 0),
+                ),
+              );
+            }
+          }
         }
+
+        await ThemeService.instance.loadTheme();
+        await LanguageService.instance.init();
+        await notificationProvider
+            .loadNotifications(); // Load initial notifications
+        // Background pre-fetch summaries
+        Future.delayed(const Duration(seconds: 3), () async {
+          try {
+            final articles = await RssService().fetchPostsPage(perPage: 10);
+            for (final article in articles.take(10)) {
+              await SummarizationService.instance.summarizeArticle(
+                article.content ?? article.excerpt ?? "",
+                articleLink: article.link,
+              );
+              await Future.delayed(const Duration(seconds: 2));
+            }
+          } catch (e) {
+            debugPrint("Prefetch error: $e");
+          }
+        });
+      } catch (e) {
+        debugPrint("Initialization error: $e");
       }
 
+      final dbService = DatabaseService();
 
-      await ThemeService.instance.loadTheme();
-      await LanguageService.instance.init();
-      await notificationProvider.loadNotifications(); // Load initial notifications
-      // Background pre-fetch summaries
-      Future.delayed(const Duration(seconds: 3), () async {
-        try {
-          final articles = await RssService().fetchPostsPage(perPage: 10);
-          for (final article in articles.take(10)) {
-            await SummarizationService.instance.summarizeArticle(
-              article.content ?? article.excerpt ?? "",
-              articleLink: article.link,
-            );
-            await Future.delayed(const Duration(seconds: 2));
-          }
-        } catch (e) {
-          debugPrint("Prefetch error: $e");
-        }
-      });
-    } catch (e) {
-      debugPrint("Initialization error: $e");
-    }
-
-    final dbService = DatabaseService();
-
-    runApp(
-      MultiProvider(
-        providers: [
-          ChangeNotifierProvider.value(value: ThemeService.instance),
-          ChangeNotifierProvider.value(value: LanguageService.instance),
-          ChangeNotifierProvider(create: (_) => SavedArticlesProvider(dbService)),
-          ChangeNotifierProvider.value(value: notificationProvider),
-          Provider.value(value: dbService),
-        ],
-        child: const MyApp(),
-      ),
-    );
-  }, (error, stack) {
-    debugPrint("Global error: $error");
-  });
+      runApp(
+        MultiProvider(
+          providers: [
+            ChangeNotifierProvider.value(value: ThemeService.instance),
+            ChangeNotifierProvider.value(value: LanguageService.instance),
+            ChangeNotifierProvider(create: (_) => LocationService()..init()),
+            ChangeNotifierProvider(
+              create: (_) => SavedArticlesProvider(dbService),
+            ),
+            ChangeNotifierProvider.value(value: notificationProvider),
+            Provider.value(value: dbService),
+          ],
+          child: const MyApp(),
+        ),
+      );
+    },
+    (error, stack) {
+      debugPrint("Global error: $error");
+    },
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -239,11 +257,7 @@ class MyApp extends StatelessWidget {
             elevatedButtonTheme: buttonStyle,
           ),
           locale: languageService.appLocale,
-          supportedLocales: const [
-            Locale('en'),
-            Locale('hi'),
-            Locale('ur'),
-          ],
+          supportedLocales: const [Locale('en'), Locale('hi'), Locale('ur')],
           localizationsDelegates: const [
             AppLocalizationsDelegate(),
             GlobalMaterialLocalizations.delegate,
@@ -285,40 +299,54 @@ class _MainScreenState extends State<MainScreen> {
     final localizations = AppLocalizations.of(context)!;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Image.asset('lib/images/appheading.png', height: 40),
-        centerTitle: true,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () => Navigator.push(
-                context, MaterialPageRoute(builder: (context) => const NotificationScreen())),
-          ),
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (context) => const SearchScreen())),
-          ),
-        ],
-      ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _screens,
-      ),
+      appBar: _selectedIndex == 0
+          ? null
+          : AppBar(
+              title: Image.asset('lib/images/appheading.png', height: 40),
+              centerTitle: true,
+              actions: [
+                IconButton(
+                  icon: const Icon(Icons.notifications_outlined),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const NotificationScreen(),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.search),
+                  onPressed: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const SearchScreen(),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+      body: IndexedStack(index: _selectedIndex, children: _screens),
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
         currentIndex: _selectedIndex,
         onTap: _onItemTapped,
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
-              icon: const Icon(Icons.home_outlined), label: localizations.translate('home')),
+            icon: const Icon(Icons.home_outlined),
+            label: localizations.translate('home'),
+          ),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.favorite_border_outlined),
-              label: localizations.translate('donate')),
+            icon: const Icon(Icons.favorite_border_outlined),
+            label: localizations.translate('donate'),
+          ),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.bookmark_border_outlined),
-              label: localizations.translate('saved')),
+            icon: const Icon(Icons.bookmark_border_outlined),
+            label: localizations.translate('saved'),
+          ),
           BottomNavigationBarItem(
-              icon: const Icon(Icons.menu_outlined), label: localizations.translate('more')),
+            icon: const Icon(Icons.menu_outlined),
+            label: localizations.translate('more'),
+          ),
         ],
       ),
     );

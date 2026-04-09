@@ -1,10 +1,13 @@
-import 'package:flutter/material.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:the_chenab_times/l10n/app_localizations.dart';
 import 'package:the_chenab_times/screens/notification_screen.dart';
 import 'package:the_chenab_times/screens/search_screen.dart';
-import 'package:the_chenab_times/widgets/article_list_tab.dart';
+import 'package:the_chenab_times/services/location_service.dart';
 import 'package:the_chenab_times/widgets/category_news_tab.dart';
+import 'package:the_chenab_times/widgets/for_you_tab.dart';
 
 /// The home screen of the app, which displays a tab bar with different news
 /// categories.
@@ -17,12 +20,10 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen>
     with SingleTickerProviderStateMixin {
-  // A controller for the tab bar.
   late TabController _tabController;
 
-  // A list of the tabs to display.
   final List<Tab> _tabs = const [
-    Tab(text: 'Latest'),
+    Tab(text: 'For You'),
     Tab(text: 'Jammu & Kashmir'),
     Tab(text: 'Chenab Valley'),
     Tab(text: 'Politics'),
@@ -41,9 +42,8 @@ class _HomeScreenState extends State<HomeScreen>
     Tab(text: 'Op-ed'),
   ];
 
-  // A list of the widgets to display for each tab.
   final List<Widget> _tabViews = const [
-    ArticleListTab(),
+    ForYouTab(),
     CategoryNewsTab(categoryId: 3),
     CategoryNewsTab(categoryId: 463),
     CategoryNewsTab(categoryId: 497),
@@ -63,13 +63,13 @@ class _HomeScreenState extends State<HomeScreen>
   ];
 
   Timer? _refreshTimer;
+
+  @override
   void initState() {
     super.initState();
-    // Auto refresh every 5 minutes
     _refreshTimer = Timer.periodic(const Duration(minutes: 5), (timer) {
       setState(() {});
     });
-    // Initialize the tab controller.
     _tabController = TabController(length: _tabs.length, vsync: this);
   }
 
@@ -84,6 +84,17 @@ class _HomeScreenState extends State<HomeScreen>
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final localizations = AppLocalizations.of(context);
+    final locationService = context.watch<LocationService>();
+    final weatherTitle =
+        locationService.city ??
+        locationService.state ??
+        locationService.country ??
+        'Use location';
+    final weatherValue = locationService.temperature != null
+        ? '${locationService.temperature!.round()}\u00B0C'
+        : (locationService.loading
+              ? 'Locating...'
+              : (locationService.weatherLabel ?? 'Tap to set'));
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F3EA),
@@ -108,27 +119,44 @@ class _HomeScreenState extends State<HomeScreen>
                       borderRadius: BorderRadius.circular(18),
                       border: Border.all(color: const Color(0xFFE1D6C5)),
                     ),
-                    child: const Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Srinagar',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFF7D6A52),
-                            fontWeight: FontWeight.w600,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(18),
+                      onTap: locationService.refreshLocation,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                weatherTitle,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Color(0xFF7D6A52),
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                weatherValue,
+                                style: const TextStyle(
+                                  fontSize: 18,
+                                  color: Color(0xFF1F3B2E),
+                                  fontWeight: FontWeight.w700,
+                                ),
+                              ),
+                            ],
                           ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          '18°C',
-                          style: TextStyle(
-                            fontSize: 18,
-                            color: Color(0xFF1F3B2E),
-                            fontWeight: FontWeight.w700,
+                          const SizedBox(width: 8),
+                          Icon(
+                            locationService.loading
+                                ? Icons.sync
+                                : Icons.my_location_rounded,
+                            size: 18,
+                            color: const Color(0xFF7D6A52),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -181,6 +209,8 @@ class _HomeScreenState extends State<HomeScreen>
                   ],
                 ),
                 indicatorSize: TabBarIndicatorSize.tab,
+                indicatorPadding: const EdgeInsets.symmetric(horizontal: 6),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 6),
                 labelColor: Colors.white,
                 unselectedLabelColor: const Color(0xFF3E352A),
                 labelStyle: theme.textTheme.titleSmall?.copyWith(
@@ -189,8 +219,6 @@ class _HomeScreenState extends State<HomeScreen>
                 unselectedLabelStyle: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
-                indicatorPadding: const EdgeInsets.symmetric(horizontal: 6),
-                labelPadding: const EdgeInsets.symmetric(horizontal: 6),
                 splashBorderRadius: BorderRadius.circular(24),
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
                 tabs: _tabs
