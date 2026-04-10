@@ -9,12 +9,14 @@ import 'package:flutter/foundation.dart';
 
 class LocationService extends ChangeNotifier {
   static const _cityKey = 'location_city';
+  static const _districtKey = 'location_district';
   static const _stateKey = 'location_state';
   static const _countryKey = 'location_country';
   static const _tempKey = 'location_temperature';
   static const _weatherLabelKey = 'location_weather_label';
 
   String? _city;
+  String? _district;
   String? _state;
   String? _country;
   double? _temperature;
@@ -23,6 +25,7 @@ class LocationService extends ChangeNotifier {
   String? _error;
 
   String? get city => _city;
+  String? get district => _district;
   String? get state => _state;
   String? get country => _country;
   double? get temperature => _temperature;
@@ -40,6 +43,7 @@ class LocationService extends ChangeNotifier {
   List<String> get interestKeywords {
     final values = <String>{
       if ((_city ?? '').isNotEmpty) _city!,
+      if ((_district ?? '').isNotEmpty) _district!,
       if ((_state ?? '').isNotEmpty) _state!,
       if ((_country ?? '').isNotEmpty) _country!,
     };
@@ -50,6 +54,17 @@ class LocationService extends ChangeNotifier {
       values.add(_state!);
     }
 
+    return values.where((item) => item.trim().isNotEmpty).toList();
+  }
+
+  List<String> get locationLookupTerms {
+    final values = <String>{
+      ...interestKeywords,
+      if ((_city ?? '').toLowerCase().startsWith('new '))
+        _city!.substring(4).trim(),
+      if ((_city ?? '').toLowerCase().startsWith('old '))
+        _city!.substring(4).trim(),
+    };
     return values.where((item) => item.trim().isNotEmpty).toList();
   }
 
@@ -92,10 +107,10 @@ class LocationService extends ChangeNotifier {
 
       if (placemarks.isNotEmpty) {
         final place = placemarks.first;
-        _city = _pickFirstNonEmpty([
-          place.locality,
+        _city = _pickFirstNonEmpty([place.locality, place.subLocality]);
+        _district = _pickFirstNonEmpty([
           place.subAdministrativeArea,
-          place.subLocality,
+          place.locality,
         ]);
         _state = _pickFirstNonEmpty([
           place.administrativeArea,
@@ -136,6 +151,7 @@ class LocationService extends ChangeNotifier {
   Future<void> _loadCachedLocation() async {
     final prefs = await SharedPreferences.getInstance();
     _city = prefs.getString(_cityKey);
+    _district = prefs.getString(_districtKey);
     _state = prefs.getString(_stateKey);
     _country = prefs.getString(_countryKey);
     _temperature = prefs.getDouble(_tempKey);
@@ -145,6 +161,7 @@ class LocationService extends ChangeNotifier {
   Future<void> _persist() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_cityKey, _city ?? '');
+    await prefs.setString(_districtKey, _district ?? '');
     await prefs.setString(_stateKey, _state ?? '');
     await prefs.setString(_countryKey, _country ?? '');
     if (_temperature != null) {

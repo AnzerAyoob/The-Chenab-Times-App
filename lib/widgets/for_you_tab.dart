@@ -38,6 +38,7 @@ class _ForYouTabState extends State<ForYouTab> {
   Timer? _heroTimer;
   Timer? _tickerTimer;
   bool _boundDependencies = false;
+  int? _activeRegionCategoryId;
 
   int _page = 1;
   int _heroIndex = 0;
@@ -89,24 +90,85 @@ class _ForYouTabState extends State<ForYouTab> {
     _refresh();
   }
 
+  Future<int?> _resolveRegionCategoryId() async {
+    final location = _locationService;
+    if (location == null) return null;
+
+    final cityTerms = <String>[
+      if ((location.city ?? '').isNotEmpty) location.city!,
+      if ((location.city ?? '').toLowerCase().startsWith('new '))
+        location.city!.substring(4).trim(),
+      if ((location.city ?? '').toLowerCase().startsWith('old '))
+        location.city!.substring(4).trim(),
+    ];
+
+    final districtTerms = <String>[
+      if ((location.district ?? '').isNotEmpty) location.district!,
+    ];
+
+    final stateTerms = <String>[
+      if ((location.state ?? '').isNotEmpty) location.state!,
+    ];
+
+    final countryTerms = <String>[
+      if ((location.country ?? '').isNotEmpty) location.country!,
+    ];
+
+    final exactTownMatch = await _rss.findExactCategoryId(cityTerms);
+    if (exactTownMatch != null) return exactTownMatch;
+
+    final exactDistrictMatch = await _rss.findExactCategoryId(districtTerms);
+    if (exactDistrictMatch != null) return exactDistrictMatch;
+
+    if ((location.country ?? '').toLowerCase() == 'india') {
+      final exactStateMatch = await _rss.findExactCategoryId(stateTerms);
+      if (exactStateMatch != null) return exactStateMatch;
+    }
+
+    final looseDistrictMatch = await _rss.findLooseCategoryId(districtTerms);
+    if (looseDistrictMatch != null) return looseDistrictMatch;
+
+    if ((location.country ?? '').toLowerCase() == 'india') {
+      final looseStateMatch = await _rss.findLooseCategoryId(stateTerms);
+      if (looseStateMatch != null) return looseStateMatch;
+    }
+
+    return _rss.findExactCategoryId(countryTerms);
+  }
+
   Future<void> _fetchPage({bool isInitial = false}) async {
     if (mounted) setState(() => _loading = true);
 
     try {
-      final pageItems = await _rss.fetchPostsPage(
-        page: _page,
-        perPage: 18,
-        languageCode: _languageService.appLocale.languageCode,
-      );
+      if (isInitial || _activeRegionCategoryId == null) {
+        _activeRegionCategoryId = await _resolveRegionCategoryId();
+      }
+
+      final pageItems = _activeRegionCategoryId != null
+          ? await _rss.fetchCategoryPosts(
+              categoryId: _activeRegionCategoryId!,
+              page: _page,
+              perPage: 18,
+              languageCode: _languageService.appLocale.languageCode,
+            )
+          : await _rss.fetchPostsPage(
+              page: _page,
+              perPage: 18,
+              languageCode: _languageService.appLocale.languageCode,
+            );
 
       if (pageItems.isEmpty) {
+        if (_activeRegionCategoryId != null && isInitial) {
+          _activeRegionCategoryId = null;
+          await _fetchPage(isInitial: true);
+          return;
+        }
         if (mounted) setState(() => _hasMore = false);
       } else {
-        final rankedItems = _rankArticles(pageItems);
         if (mounted) {
           setState(() {
             if (isInitial) _items.clear();
-            _items.addAll(rankedItems);
+            _items.addAll(pageItems);
             _page++;
             _hasError = false;
           });
@@ -134,37 +196,6 @@ class _ForYouTabState extends State<ForYouTab> {
     }
   }
 
-  List<Article> _rankArticles(List<Article> articles) {
-    final keywords = _locationService?.interestKeywords ?? const <String>[];
-    if (keywords.isEmpty) return articles;
-
-    final ranked = [...articles];
-    ranked.sort(
-      (a, b) =>
-          _scoreArticle(b, keywords).compareTo(_scoreArticle(a, keywords)),
-    );
-    return ranked;
-  }
-
-  int _scoreArticle(Article article, List<String> keywords) {
-    final haystack = [
-      article.title,
-      article.excerpt,
-      article.content,
-      article.author,
-    ].whereType<String>().join(' ').toLowerCase();
-
-    var score = 0;
-    for (final keyword in keywords) {
-      final normalized = keyword.toLowerCase();
-      if (normalized.isEmpty) continue;
-      if (haystack.contains(normalized)) score += 10;
-      if (article.title?.toLowerCase().contains(normalized) ?? false)
-        score += 25;
-    }
-    return score;
-  }
-
   Future<void> _refresh() async {
     _heroTimer?.cancel();
     _tickerTimer?.cancel();
@@ -173,6 +204,7 @@ class _ForYouTabState extends State<ForYouTab> {
       _hasError = false;
       _items.clear();
       _page = 1;
+      _activeRegionCategoryId = null;
       _hasMore = true;
       _loading = true;
       _heroIndex = 0;
@@ -274,22 +306,12 @@ class _ForYouTabState extends State<ForYouTab> {
     if (_items.isEmpty) return const SizedBox.shrink();
 
     final featuredItems = _items.take(5).toList();
-    final locationService = context.watch<LocationService>();
     final tickerItems = _items.take(8).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(14, 4, 14, 10),
-          child: Text(
-            'For ${locationService.headlineLocation}',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              color: const Color(0xFF2A2017),
-              fontWeight: FontWeight.w800,
-            ),
-          ),
-        ),
+        const SizedBox(height: 4),
         SizedBox(
           height: 240,
           child: PageView.builder(
@@ -364,9 +386,9 @@ class _ForYouTabState extends State<ForYouTab> {
                                   ).withOpacity(0.95),
                                   borderRadius: BorderRadius.circular(14),
                                 ),
-                                child: Text(
-                                  'For ${locationService.headlineLocation}',
-                                  style: const TextStyle(
+                                child: const Text(
+                                  'Featured News',
+                                  style: TextStyle(
                                     color: Color(0xFF3B2B18),
                                     fontWeight: FontWeight.w700,
                                   ),
@@ -454,26 +476,44 @@ class _ForYouTabState extends State<ForYouTab> {
               ),
               const SizedBox(width: 12),
               Expanded(
-                child: AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 450),
-                  transitionBuilder: (child, animation) => SlideTransition(
-                    position: Tween<Offset>(
-                      begin: const Offset(1, 0),
-                      end: Offset.zero,
-                    ).animate(animation),
-                    child: child,
-                  ),
-                  child: Text(
-                    HtmlHelper.stripAndUnescape(
-                      tickerItems[_tickerIndex].title,
+                child: GestureDetector(
+                  onTap: () {
+                    final tickerArticle = tickerItems[_tickerIndex];
+                    final articleIndex = _items.indexWhere(
+                      (item) => item.id == tickerArticle.id,
+                    );
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ArticleScreen(
+                          articles: _items,
+                          initialIndex: articleIndex >= 0 ? articleIndex : 0,
+                        ),
+                      ),
+                    );
+                  },
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 450),
+                    transitionBuilder: (child, animation) => SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(1, 0),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
                     ),
-                    key: ValueKey(tickerItems[_tickerIndex].id ?? _tickerIndex),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
+                    child: Text(
+                      HtmlHelper.stripAndUnescape(
+                        tickerItems[_tickerIndex].title,
+                      ),
+                      key: ValueKey(
+                        tickerItems[_tickerIndex].id ?? _tickerIndex,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                 ),
@@ -484,7 +524,7 @@ class _ForYouTabState extends State<ForYouTab> {
         Padding(
           padding: const EdgeInsets.fromLTRB(14, 18, 14, 8),
           child: Text(
-            'Trending In ${locationService.headlineLocation}',
+            'Trending Topics',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
               color: const Color(0xFF251C12),
@@ -497,9 +537,6 @@ class _ForYouTabState extends State<ForYouTab> {
             spacing: 8,
             runSpacing: 8,
             children: [
-              ...locationService.interestKeywords.map(
-                (topic) => _TopicChip(label: '#${topic.replaceAll(' ', '')}'),
-              ),
               ..._fallbackTopics.map((topic) => _TopicChip(label: topic)),
             ],
           ),
