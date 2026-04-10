@@ -297,16 +297,52 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final navItems = <_PremiumNavItemData>[
+      _PremiumNavItemData(
+        label: localizations.translate('home'),
+        icon: Icons.home_rounded,
+      ),
+      _PremiumNavItemData(
+        label: localizations.translate('donate'),
+        icon: Icons.favorite_rounded,
+      ),
+      _PremiumNavItemData(
+        label: localizations.translate('saved'),
+        icon: Icons.bookmark_rounded,
+      ),
+      _PremiumNavItemData(
+        label: localizations.translate('more'),
+        icon: Icons.dashboard_rounded,
+      ),
+    ];
 
     return Scaffold(
       appBar: _selectedIndex == 0
           ? null
           : AppBar(
+              backgroundColor: const Color(0xFFF6E8D5),
+              surfaceTintColor: Colors.transparent,
+              elevation: 0,
+              shadowColor: Colors.transparent,
+              scrolledUnderElevation: 0,
+              flexibleSpace: Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFFBF5), Color(0xFFF1DDC1)],
+                  ),
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFE1CCAF), width: 1),
+                  ),
+                ),
+              ),
               title: Image.asset('lib/images/appheading.png', height: 40),
               centerTitle: true,
               actions: [
-                IconButton(
-                  icon: const Icon(Icons.notifications_outlined),
+                _PremiumAppBarActionButton(
+                  icon: Icons.notifications_none_rounded,
+                  semanticLabel: 'Notifications',
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -314,8 +350,10 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(Icons.search),
+                const SizedBox(width: 8),
+                _PremiumAppBarActionButton(
+                  icon: Icons.search_rounded,
+                  semanticLabel: 'Search',
                   onPressed: () => Navigator.push(
                     context,
                     MaterialPageRoute(
@@ -323,31 +361,309 @@ class _MainScreenState extends State<MainScreen> {
                     ),
                   ),
                 ),
+                const SizedBox(width: 12),
               ],
             ),
       body: IndexedStack(index: _selectedIndex, children: _screens),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
+      bottomNavigationBar: _PremiumBottomNavigationBar(
         currentIndex: _selectedIndex,
+        items: navItems,
         onTap: _onItemTapped,
-        items: <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.home_outlined),
-            label: localizations.translate('home'),
+      ),
+    );
+  }
+}
+
+class _PremiumNavItemData {
+  const _PremiumNavItemData({required this.label, required this.icon});
+
+  final String label;
+  final IconData icon;
+}
+
+class _PremiumAppBarActionButton extends StatefulWidget {
+  const _PremiumAppBarActionButton({
+    required this.icon,
+    required this.onPressed,
+    required this.semanticLabel,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String semanticLabel;
+
+  @override
+  State<_PremiumAppBarActionButton> createState() =>
+      _PremiumAppBarActionButtonState();
+}
+
+class _PremiumAppBarActionButtonState
+    extends State<_PremiumAppBarActionButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: widget.semanticLabel,
+      button: true,
+      child: AnimatedScale(
+        scale: _pressed ? 0.94 : 1,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOut,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onPressed,
+            onTapDown: (_) => _setPressed(true),
+            onTapCancel: () => _setPressed(false),
+            onTapUp: (_) => _setPressed(false),
+            borderRadius: BorderRadius.circular(20),
+            splashColor: const Color(0x338C1D18),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFF6E8), Color(0xFFF0D9B9)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE3C08F)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFB22D1F), Color(0xFF7C1714)],
+                    ),
+                  ),
+                  child: Icon(widget.icon, color: Colors.white, size: 17),
+                ),
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.favorite_border_outlined),
-            label: localizations.translate('donate'),
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumBottomNavigationBar extends StatelessWidget {
+  const _PremiumBottomNavigationBar({
+    required this.currentIndex,
+    required this.items,
+    required this.onTap,
+  });
+
+  final int currentIndex;
+  final List<_PremiumNavItemData> items;
+  final ValueChanged<int> onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      minimum: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+      child: Container(
+        margin: const EdgeInsets.only(top: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFFCF6), Color(0xFFF3E4CF)],
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.bookmark_border_outlined),
-            label: localizations.translate('saved'),
+          borderRadius: BorderRadius.circular(28),
+          border: Border.all(color: const Color(0xFFE3CCAC)),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x19000000),
+              blurRadius: 24,
+              offset: Offset(0, 10),
+            ),
+          ],
+        ),
+        child: Row(
+          children: List.generate(items.length, (index) {
+            final item = items[index];
+            return Expanded(
+              child: _PremiumBottomNavigationItem(
+                data: item,
+                selected: index == currentIndex,
+                onTap: () => onTap(index),
+              ),
+            );
+          }),
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumBottomNavigationItem extends StatefulWidget {
+  const _PremiumBottomNavigationItem({
+    required this.data,
+    required this.selected,
+    required this.onTap,
+  });
+
+  final _PremiumNavItemData data;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  State<_PremiumBottomNavigationItem> createState() =>
+      _PremiumBottomNavigationItemState();
+}
+
+class _PremiumBottomNavigationItemState
+    extends State<_PremiumBottomNavigationItem> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = widget.selected;
+    final highlightColor = selected
+        ? const Color(0xFF8C1D18)
+        : const Color(0xFF7A6A58);
+    final labelColor = selected
+        ? const Color(0xFF5C120F)
+        : const Color(0xFF6E6254);
+
+    return AnimatedScale(
+      scale: _pressed ? 0.96 : 1,
+      duration: const Duration(milliseconds: 120),
+      curve: Curves.easeOut,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 4),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            borderRadius: BorderRadius.circular(22),
+            splashColor: const Color(0x338C1D18),
+            highlightColor: Colors.transparent,
+            onTap: widget.onTap,
+            onTapDown: (_) => _setPressed(true),
+            onTapCancel: () => _setPressed(false),
+            onTapUp: (_) => _setPressed(false),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 260),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
+              decoration: BoxDecoration(
+                gradient: selected
+                    ? const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFFFFF4E2), Color(0xFFF3D1A7)],
+                      )
+                    : null,
+                color: selected ? null : Colors.transparent,
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
+                  color: selected
+                      ? const Color(0xFFE3C08F)
+                      : Colors.transparent,
+                ),
+                boxShadow: selected
+                    ? const [
+                        BoxShadow(
+                          color: Color(0x1F8C1D18),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 260),
+                    curve: Curves.easeOutCubic,
+                    width: selected ? 44 : 38,
+                    height: selected ? 44 : 38,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: selected
+                          ? const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFFB22D1F), Color(0xFF7C1714)],
+                            )
+                          : const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [Color(0xFFF8EFE4), Color(0xFFEADBC7)],
+                            ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: selected
+                              ? const Color(0x308C1D18)
+                              : const Color(0x12000000),
+                          blurRadius: selected ? 12 : 6,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 220),
+                      transitionBuilder: (child, animation) {
+                        return ScaleTransition(scale: animation, child: child);
+                      },
+                      child: Icon(
+                        widget.data.icon,
+                        key: ValueKey('${widget.data.label}-$selected'),
+                        color: selected ? Colors.white : highlightColor,
+                        size: selected ? 24 : 22,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  AnimatedDefaultTextStyle(
+                    duration: const Duration(milliseconds: 220),
+                    curve: Curves.easeOutCubic,
+                    style: TextStyle(
+                      fontSize: selected ? 13.5 : 13,
+                      fontWeight: selected ? FontWeight.w800 : FontWeight.w600,
+                      color: labelColor,
+                      letterSpacing: selected ? 0.1 : 0,
+                    ),
+                    child: Text(
+                      widget.data.label,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
-          BottomNavigationBarItem(
-            icon: const Icon(Icons.menu_outlined),
-            label: localizations.translate('more'),
-          ),
-        ],
+        ),
       ),
     );
   }

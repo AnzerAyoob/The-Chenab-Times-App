@@ -71,10 +71,17 @@ class _HomeScreenState extends State<HomeScreen>
       setState(() {});
     });
     _tabController = TabController(length: _tabs.length, vsync: this);
+    _tabController.addListener(_handleTabSelectionChange);
+  }
+
+  void _handleTabSelectionChange() {
+    if (!mounted) return;
+    setState(() {});
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_handleTabSelectionChange);
     _tabController.dispose();
     _refreshTimer?.cancel();
     super.dispose();
@@ -104,8 +111,12 @@ class _HomeScreenState extends State<HomeScreen>
             Container(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 10),
               decoration: const BoxDecoration(
-                color: Color(0xFFF8F3EA),
-                border: Border(bottom: BorderSide(color: Color(0xFFE1D6C5))),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFFBF5), Color(0xFFF1DDC1)],
+                ),
+                border: Border(bottom: BorderSide(color: Color(0xFFE1CCAF))),
               ),
               child: Row(
                 children: [
@@ -115,12 +126,23 @@ class _HomeScreenState extends State<HomeScreen>
                       vertical: 8,
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.85),
-                      borderRadius: BorderRadius.circular(18),
-                      border: Border.all(color: const Color(0xFFE1D6C5)),
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [Color(0xFFFFF8EE), Color(0xFFF1DEC5)],
+                      ),
+                      borderRadius: BorderRadius.circular(22),
+                      border: Border.all(color: const Color(0xFFE3CCAC)),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x12000000),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
                     ),
                     child: InkWell(
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(22),
                       onTap: locationService.refreshLocation,
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
@@ -132,7 +154,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 weatherTitle,
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: Color(0xFF7D6A52),
+                                  color: Color(0xFF855E3A),
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -141,19 +163,38 @@ class _HomeScreenState extends State<HomeScreen>
                                 weatherValue,
                                 style: const TextStyle(
                                   fontSize: 18,
-                                  color: Color(0xFF1F3B2E),
+                                  color: Color(0xFF6D1715),
                                   fontWeight: FontWeight.w700,
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(width: 8),
-                          Icon(
-                            locationService.loading
-                                ? Icons.sync
-                                : Icons.my_location_rounded,
-                            size: 18,
-                            color: const Color(0xFF7D6A52),
+                          AnimatedRotation(
+                            turns: locationService.loading ? 0.25 : 0,
+                            duration: const Duration(milliseconds: 450),
+                            child: Container(
+                              width: 32,
+                              height: 32,
+                              decoration: const BoxDecoration(
+                                shape: BoxShape.circle,
+                                gradient: LinearGradient(
+                                  begin: Alignment.topLeft,
+                                  end: Alignment.bottomRight,
+                                  colors: [
+                                    Color(0xFFB22D1F),
+                                    Color(0xFF7C1714),
+                                  ],
+                                ),
+                              ),
+                              child: Icon(
+                                locationService.loading
+                                    ? Icons.sync_rounded
+                                    : Icons.my_location_rounded,
+                                size: 18,
+                                color: Colors.white,
+                              ),
+                            ),
                           ),
                         ],
                       ),
@@ -167,18 +208,18 @@ class _HomeScreenState extends State<HomeScreen>
                       fit: BoxFit.contain,
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.search, color: Color(0xFF9B7B4B)),
+                  _PremiumHeaderActionButton(
+                    icon: Icons.search_rounded,
+                    semanticLabel: 'Search',
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SearchScreen()),
                     ),
                   ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.notifications_none_rounded,
-                      color: Color(0xFF9B7B4B),
-                    ),
+                  const SizedBox(width: 8),
+                  _PremiumHeaderActionButton(
+                    icon: Icons.notifications_none_rounded,
+                    semanticLabel: 'Notifications',
                     onPressed: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -191,19 +232,33 @@ class _HomeScreenState extends State<HomeScreen>
             ),
             Container(
               width: double.infinity,
-              color: const Color(0xFFF8F3EA),
+              decoration: const BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFFBF5), Color(0xFFF2E2CA)],
+                ),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE6D4BB), width: 1),
+                ),
+              ),
               child: TabBar(
                 controller: _tabController,
                 isScrollable: true,
                 tabAlignment: TabAlignment.start,
                 dividerColor: Colors.transparent,
                 indicator: BoxDecoration(
-                  color: const Color(0xFF2F6C52),
-                  borderRadius: BorderRadius.circular(24),
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFB22D1F), Color(0xFF7C1714)],
+                  ),
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(color: const Color(0xFFE8C08C)),
                   boxShadow: const [
                     BoxShadow(
-                      color: Color(0x22000000),
-                      blurRadius: 10,
+                      color: Color(0x2A8C1D18),
+                      blurRadius: 14,
                       offset: Offset(0, 4),
                     ),
                   ],
@@ -212,32 +267,77 @@ class _HomeScreenState extends State<HomeScreen>
                 indicatorPadding: const EdgeInsets.symmetric(horizontal: 6),
                 labelPadding: const EdgeInsets.symmetric(horizontal: 6),
                 labelColor: Colors.white,
-                unselectedLabelColor: const Color(0xFF3E352A),
+                unselectedLabelColor: const Color(0xFF6C5640),
                 labelStyle: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w700,
+                  letterSpacing: 0.2,
                 ),
                 unselectedLabelStyle: theme.textTheme.titleSmall?.copyWith(
                   fontWeight: FontWeight.w600,
                 ),
                 splashBorderRadius: BorderRadius.circular(24),
                 padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
-                tabs: _tabs
-                    .map(
-                      (tab) => Tab(
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 18,
-                            vertical: 10,
-                          ),
-                          child: Text(
-                            tab.text ??
-                                localizations?.translate('home') ??
-                                'Home',
-                          ),
+                tabs: _tabs.map((tab) {
+                  final index = _tabs.indexOf(tab);
+                  final isSelected = _tabController.index == index;
+                  return Tab(
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 240),
+                      curve: Curves.easeOutCubic,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 11,
+                      ),
+                      transform: Matrix4.translationValues(
+                        0,
+                        isSelected ? -1.5 : 0,
+                        0,
+                      ),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(26),
+                        boxShadow: isSelected
+                            ? const [
+                                BoxShadow(
+                                  color: Color(0x1A8C1D18),
+                                  blurRadius: 12,
+                                  offset: Offset(0, 5),
+                                ),
+                              ]
+                            : null,
+                      ),
+                      child: AnimatedDefaultTextStyle(
+                        duration: const Duration(milliseconds: 220),
+                        curve: Curves.easeOutCubic,
+                        style:
+                            (isSelected
+                                    ? theme.textTheme.titleSmall
+                                    : theme.textTheme.titleSmall)
+                                ?.copyWith(
+                                  fontWeight: isSelected
+                                      ? FontWeight.w800
+                                      : FontWeight.w600,
+                                  letterSpacing: isSelected ? 0.22 : 0,
+                                  color: isSelected
+                                      ? Colors.white
+                                      : const Color(0xFF6C5640),
+                                ) ??
+                            TextStyle(
+                              fontWeight: isSelected
+                                  ? FontWeight.w800
+                                  : FontWeight.w600,
+                              color: isSelected
+                                  ? Colors.white
+                                  : const Color(0xFF6C5640),
+                            ),
+                        child: Text(
+                          tab.text ??
+                              localizations?.translate('home') ??
+                              'Home',
                         ),
                       ),
-                    )
-                    .toList(),
+                    ),
+                  );
+                }).toList(),
               ),
             ),
             Expanded(
@@ -247,6 +347,93 @@ class _HomeScreenState extends State<HomeScreen>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PremiumHeaderActionButton extends StatefulWidget {
+  const _PremiumHeaderActionButton({
+    required this.icon,
+    required this.onPressed,
+    required this.semanticLabel,
+  });
+
+  final IconData icon;
+  final VoidCallback onPressed;
+  final String semanticLabel;
+
+  @override
+  State<_PremiumHeaderActionButton> createState() =>
+      _PremiumHeaderActionButtonState();
+}
+
+class _PremiumHeaderActionButtonState
+    extends State<_PremiumHeaderActionButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool value) {
+    if (_pressed == value) return;
+    setState(() => _pressed = value);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: widget.semanticLabel,
+      button: true,
+      child: AnimatedScale(
+        scale: _pressed ? 0.94 : 1,
+        duration: const Duration(milliseconds: 130),
+        curve: Curves.easeOut,
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: widget.onPressed,
+            onTapDown: (_) => _setPressed(true),
+            onTapCancel: () => _setPressed(false),
+            onTapUp: (_) => _setPressed(false),
+            borderRadius: BorderRadius.circular(20),
+            splashColor: const Color(0x338C1D18),
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 240),
+              curve: Curves.easeOutCubic,
+              width: 46,
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFF6E8), Color(0xFFF0D9B9)],
+                ),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: const Color(0xFFE3C08F)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 12,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Center(
+                child: Container(
+                  width: 30,
+                  height: 30,
+                  decoration: const BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [Color(0xFFB22D1F), Color(0xFF7C1714)],
+                    ),
+                  ),
+                  child: Icon(widget.icon, color: Colors.white, size: 17),
+                ),
+              ),
+            ),
+          ),
         ),
       ),
     );
