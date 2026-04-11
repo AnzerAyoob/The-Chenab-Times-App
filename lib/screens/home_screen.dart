@@ -110,85 +110,79 @@ class _HomeScreenState extends State<HomeScreen>
         child: Column(
           children: [
             Container(
-              padding: const EdgeInsets.fromLTRB(14, 12, 14, 10),
+              padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [Color(0xFFFFFBF5), Color(0xFFF1DDC1)],
                 ),
-                border: Border(bottom: BorderSide(color: Color(0xFFE1CCAF))),
               ),
-              child: Row(
-                children: [
-                  _WeatherHeaderCard(
-                    title: weatherTitle,
-                    value: weatherValue,
-                    loading: locationService.loading,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const WeatherScreen(),
-                        ),
-                      );
-                    },
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFFFFFCF7), Color(0xFFF3E2CA)],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      height: 82,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
-                      ),
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [Color(0xFFFFFBF5), Color(0xFFF4E4CD)],
-                        ),
-                        borderRadius: BorderRadius.circular(26),
-                        border: Border.all(color: const Color(0xFFE3CCAC)),
-                        boxShadow: const [
-                          BoxShadow(
-                            color: Color(0x12000000),
-                            blurRadius: 12,
-                            offset: Offset(0, 4),
+                  borderRadius: BorderRadius.circular(34),
+                  border: Border.all(color: const Color(0xFFE1CCAF)),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x14000000),
+                      blurRadius: 22,
+                      offset: Offset(0, 8),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  children: [
+                    _WeatherHeaderCard(
+                      title: weatherTitle,
+                      value: weatherValue,
+                      loading: locationService.loading,
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const WeatherScreen(),
                           ),
-                        ],
-                      ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
                       child: Center(
                         child: Image.asset(
                           'lib/images/appheading.png',
-                          height: 58,
+                          height: 66,
                           fit: BoxFit.contain,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  _PremiumHeaderActionButton(
-                    icon: Icons.search_rounded,
-                    semanticLabel: 'Search',
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SearchScreen()),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  _PremiumHeaderActionButton(
-                    icon: Icons.notifications_none_rounded,
-                    semanticLabel: 'Notifications',
-                    onPressed: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const NotificationScreen(),
+                    const SizedBox(width: 10),
+                    _PremiumHeaderActionButton(
+                      icon: Icons.search_rounded,
+                      semanticLabel: 'Search',
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const SearchScreen()),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 10),
+                    _PremiumHeaderActionButton(
+                      icon: Icons.notifications_none_rounded,
+                      semanticLabel: 'Notifications',
+                      onPressed: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const NotificationScreen(),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
             Container(
@@ -355,44 +349,29 @@ class _PremiumHeaderActionButtonState
             onTapDown: (_) => _setPressed(true),
             onTapCancel: () => _setPressed(false),
             onTapUp: (_) => _setPressed(false),
-            borderRadius: BorderRadius.circular(20),
+            borderRadius: BorderRadius.circular(999),
             splashColor: const Color(0x338C1D18),
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 240),
               curve: Curves.easeOutCubic,
-              width: 46,
-              height: 46,
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
+                shape: BoxShape.circle,
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFF6E8), Color(0xFFF0D9B9)],
+                  colors: [Color(0xFFB22D1F), Color(0xFF7C1714)],
                 ),
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE3C08F)),
                 boxShadow: const [
                   BoxShadow(
-                    color: Color(0x14000000),
-                    blurRadius: 12,
-                    offset: Offset(0, 4),
+                    color: Color(0x238C1D18),
+                    blurRadius: 14,
+                    offset: Offset(0, 6),
                   ),
                 ],
               ),
-              child: Center(
-                child: Container(
-                  width: 30,
-                  height: 30,
-                  decoration: const BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [Color(0xFFB22D1F), Color(0xFF7C1714)],
-                    ),
-                  ),
-                  child: Icon(widget.icon, color: Colors.white, size: 17),
-                ),
-              ),
+              child: Icon(widget.icon, color: Colors.white, size: 29),
             ),
           ),
         ),
@@ -419,29 +398,12 @@ class _WeatherHeaderCard extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: InkWell(
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         onTap: onTap,
         splashColor: const Color(0x228C1D18),
-        child: Container(
-          width: 124,
-          height: 82,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [Color(0xFFFFF8EE), Color(0xFFF1DEC5)],
-            ),
-            borderRadius: BorderRadius.circular(28),
-            border: Border.all(color: const Color(0xFFE3CCAC)),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x12000000),
-                blurRadius: 12,
-                offset: Offset(0, 4),
-              ),
-            ],
-          ),
+        child: SizedBox(
+          width: 116,
+          height: 74,
           child: Row(
             children: [
               Expanded(
@@ -455,11 +417,11 @@ class _WeatherHeaderCard extends StatelessWidget {
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontSize: 12,
-                        color: Color(0xFF855E3A),
+                        color: Color(0xFF7E5C3B),
                         fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(height: 6),
+                    const SizedBox(height: 4),
                     Text(
                       value,
                       maxLines: 1,
@@ -478,8 +440,8 @@ class _WeatherHeaderCard extends StatelessWidget {
                 turns: loading ? 0.25 : 0,
                 duration: const Duration(milliseconds: 450),
                 child: Container(
-                  width: 34,
-                  height: 34,
+                  width: 28,
+                  height: 28,
                   decoration: const BoxDecoration(
                     shape: BoxShape.circle,
                     gradient: LinearGradient(
@@ -490,7 +452,7 @@ class _WeatherHeaderCard extends StatelessWidget {
                   ),
                   child: Icon(
                     loading ? Icons.sync_rounded : Icons.my_location_rounded,
-                    size: 18,
+                    size: 16,
                     color: Colors.white,
                   ),
                 ),
