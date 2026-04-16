@@ -119,7 +119,7 @@ class _HomeScreenState extends State<HomeScreen>
                 ),
               ),
               child: Container(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+                padding: const EdgeInsets.fromLTRB(14, 10, 14, 10),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     begin: Alignment.topLeft,
@@ -151,17 +151,17 @@ class _HomeScreenState extends State<HomeScreen>
                         );
                       },
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Expanded(
                       child: Center(
                         child: Image.asset(
                           'lib/images/appheading.png',
-                          height: 82,
+                          height: 46,
                           fit: BoxFit.contain,
                         ),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     _PremiumHeaderActionButton(
                       icon: Icons.search_rounded,
                       semanticLabel: 'Search',
@@ -170,7 +170,7 @@ class _HomeScreenState extends State<HomeScreen>
                         MaterialPageRoute(builder: (_) => const SearchScreen()),
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     _PremiumHeaderActionButton(
                       icon: Icons.notifications_none_rounded,
                       semanticLabel: 'Notifications',
@@ -354,8 +354,8 @@ class _PremiumHeaderActionButtonState
             child: AnimatedContainer(
               duration: const Duration(milliseconds: 240),
               curve: Curves.easeOutCubic,
-              width: 42,
-              height: 42,
+              width: 36,
+              height: 36,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: const LinearGradient(
@@ -366,12 +366,12 @@ class _PremiumHeaderActionButtonState
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x238C1D18),
-                    blurRadius: 8,
-                    offset: Offset(0, 3),
+                    blurRadius: 6,
+                    offset: Offset(0, 2),
                   ),
                 ],
               ),
-              child: Icon(widget.icon, color: Colors.white, size: 20),
+              child: Icon(widget.icon, color: Colors.white, size: 18),
             ),
           ),
         ),
@@ -402,8 +402,8 @@ class _WeatherHeaderCard extends StatelessWidget {
         onTap: onTap,
         splashColor: const Color(0x228C1D18),
         child: SizedBox(
-          width: 94,
-          height: 68,
+          width: 86,
+          height: 60,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -413,7 +413,7 @@ class _WeatherHeaderCard extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  fontSize: 12,
+                  fontSize: 11,
                   color: Color(0xFF7E5C3B),
                   fontWeight: FontWeight.w700,
                 ),
@@ -426,7 +426,7 @@ class _WeatherHeaderCard extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: const TextStyle(
-                      fontSize: 17,
+                      fontSize: 16,
                       color: Color(0xFF6D1715),
                       fontWeight: FontWeight.w800,
                     ),

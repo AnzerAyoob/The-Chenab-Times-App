@@ -178,11 +178,12 @@ class _ForYouTabState extends State<ForYouTab> {
     final languageCode = _languageService.appLocale.languageCode;
     final combined = <Article>[];
     final seenIds = <int>{};
-    final usedCategoryIds = <int>{};
+    final usedBuckets = <String>{};
 
     Future<void> appendBucket(int? categoryId, {bool recentOnly = true}) async {
       if (categoryId == null) return;
-      if (!usedCategoryIds.add(categoryId)) return;
+      final bucketKey = '$categoryId-${recentOnly ? 'recent' : 'all'}';
+      if (!usedBuckets.add(bucketKey)) return;
       final posts = await _rss.fetchCategoryPosts(
         categoryId: categoryId,
         perPage: 20,
