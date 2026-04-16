@@ -178,12 +178,11 @@ class _ForYouTabState extends State<ForYouTab> {
     final languageCode = _languageService.appLocale.languageCode;
     final combined = <Article>[];
     final seenIds = <int>{};
-    final usedBuckets = <String>{};
+    final usedCategoryIds = <int>{};
 
     Future<void> appendBucket(int? categoryId, {bool recentOnly = true}) async {
       if (categoryId == null) return;
-      final bucketKey = '$categoryId-${recentOnly ? 'recent' : 'all'}';
-      if (!usedBuckets.add(bucketKey)) return;
+      if (!usedCategoryIds.add(categoryId)) return;
       final posts = await _rss.fetchCategoryPosts(
         categoryId: categoryId,
         perPage: 20,
@@ -208,25 +207,11 @@ class _ForYouTabState extends State<ForYouTab> {
       await appendBucket(countryCategoryId);
 
       if (combined.isEmpty) {
-        await appendBucket(primaryCategoryId, recentOnly: false);
-        await appendBucket(stateCategoryId, recentOnly: false);
-        await appendBucket(countryCategoryId, recentOnly: false);
-      }
-
-      if (combined.isEmpty) {
         await appendBucket(internationalCategoryId, recentOnly: false);
       }
     } else {
       await appendBucket(stateCategoryId ?? primaryCategoryId);
       await appendBucket(countryCategoryId);
-
-      if (combined.isEmpty) {
-        await appendBucket(
-          stateCategoryId ?? primaryCategoryId,
-          recentOnly: false,
-        );
-        await appendBucket(countryCategoryId, recentOnly: false);
-      }
 
       if (combined.isEmpty) {
         await appendBucket(internationalCategoryId, recentOnly: false);
