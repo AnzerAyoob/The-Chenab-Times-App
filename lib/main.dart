@@ -16,6 +16,7 @@ import 'models/article_model.dart';
 import 'models/notification_model.dart';
 import 'screens/article_screen.dart';
 import 'screens/donate_screen.dart';
+import 'screens/games_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/more_screen.dart';
 import 'screens/notification_screen.dart';
@@ -282,6 +283,7 @@ class _MainScreenState extends State<MainScreen> {
     const HomeScreen(),
     const DonateScreen(),
     const SavedArticlesScreen(),
+    const GamesScreen(),
     const MoreScreen(),
   ];
 
@@ -307,6 +309,7 @@ class _MainScreenState extends State<MainScreen> {
         label: localizations.translate('saved'),
         icon: Icons.bookmark_rounded,
       ),
+      const _PremiumNavItemData(label: 'Games', icon: Icons.extension_rounded),
       _PremiumNavItemData(
         label: localizations.translate('more'),
         icon: Icons.dashboard_rounded,
