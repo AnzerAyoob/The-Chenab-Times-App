@@ -127,9 +127,7 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<void> clearAllNotifications() async {
     final deletedSignatures = await _deletedNotificationSignatures();
-    deletedSignatures.addAll(
-      _notifications.map(_notificationSignature),
-    );
+    deletedSignatures.addAll(_notifications.map(_notificationSignature));
     await _saveDeletedNotificationSignatures(deletedSignatures);
     await _dbService.deleteAllNotifications();
     _notifications.clear();
@@ -146,7 +144,8 @@ class NotificationProvider extends ChangeNotifier {
     }
 
     _notifications.removeWhere(
-      (item) => _notificationSignature(item) == _notificationSignature(notification),
+      (item) =>
+          _notificationSignature(item) == _notificationSignature(notification),
     );
     notifyListeners();
   }
@@ -218,7 +217,9 @@ class NotificationProvider extends ChangeNotifier {
     return prefs.getStringList(_deletedNotificationsKey)?.toSet() ?? <String>{};
   }
 
-  Future<void> _saveDeletedNotificationSignatures(Set<String> signatures) async {
+  Future<void> _saveDeletedNotificationSignatures(
+    Set<String> signatures,
+  ) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(
       _deletedNotificationsKey,

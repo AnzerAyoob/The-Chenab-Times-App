@@ -152,16 +152,16 @@ class _NotificationScreenState extends State<NotificationScreen> {
               itemBuilder: (context, index) {
                 final notification = provider.notifications[index];
                 return Dismissible(
-                  key: ValueKey(
-                    notification.notificationId ??
-                        '${notification.postId}-${notification.title}',
-                  ),
+                  key: ValueKey(notification.notificationId),
                   direction: DismissDirection.endToStart,
                   background: Container(
                     color: Colors.red,
                     alignment: Alignment.centerRight,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: const Icon(Icons.delete_outline, color: Colors.white),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.white,
+                    ),
                   ),
                   onDismissed: (_) {
                     provider.deleteNotification(notification);
@@ -188,7 +188,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    onTap: () => _handleNotificationClick(context, notification),
+                    onTap: () =>
+                        _handleNotificationClick(context, notification),
                   ),
                 );
               },
