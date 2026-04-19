@@ -37,6 +37,10 @@ const MethodChannel _deepLinkChannel = MethodChannel(
 );
 
 void _openChenabLinkInApp(String? link) {
+  unawaited(_openChenabLinkInAppAsync(link));
+}
+
+Future<void> _openChenabLinkInAppAsync(String? link) async {
   final url = link?.trim();
   if (url == null || url.isEmpty) return;
   final uri = Uri.tryParse(url);
@@ -50,6 +54,23 @@ void _openChenabLinkInApp(String? link) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _openChenabLinkInApp(url);
     });
+    return;
+  }
+
+  final languageCode = LanguageService.instance.isReady
+      ? LanguageService.instance.appLocale.languageCode
+      : null;
+  final article = await RssService().fetchArticleByUrl(
+    url,
+    languageCode: languageCode,
+  );
+
+  if (article != null) {
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (_) => ArticleScreen(articles: [article], initialIndex: 0),
+      ),
+    );
     return;
   }
 
