@@ -120,7 +120,8 @@ class _ArticleScreenState extends State<ArticleScreen> {
             imageBytes: imageBytes,
           ),
         ),
-        delay: const Duration(milliseconds: 2000),
+        delay: const Duration(milliseconds: 120),
+        pixelRatio: 1.0,
       );
 
       if (mounted) Navigator.of(context).pop();
@@ -158,7 +159,8 @@ class _ArticleScreenState extends State<ArticleScreen> {
           await SharePlus.instance.share(
             ShareParams(
               files: [XFile(path)],
-              text: '$cleanTitle\n\nRead more:\n\n$articleUrl',
+              text:
+                  '$cleanTitle\n\nDownload The Chenab Times App\n\nRead more:\n\n$articleUrl',
             ),
           );
         }
@@ -266,6 +268,17 @@ class __ArticlePageState extends State<_ArticlePage> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cardColor = isDark
+        ? const Color(0xFF1A1A1A)
+        : const Color(0xFFFFFCF7);
+    final accentBorder = isDark
+        ? const Color(0xFF2A2A2A)
+        : const Color(0xFFE7D6C0);
+    final titleColor = isDark ? Colors.white : const Color(0xFF1F1811);
+    final bodyColor = isDark
+        ? const Color(0xFFD0D0D0)
+        : const Color(0xFF3E3024);
     final imageUrl = widget.article.imageUrl ?? widget.article.thumbnailUrl;
     final articleTitle = HtmlHelper.stripAndUnescape(widget.article.title);
     final articleDate = widget.article.date != null
@@ -285,13 +298,9 @@ class __ArticlePageState extends State<_ArticlePage> {
               width: double.infinity,
               padding: const EdgeInsets.all(18),
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFFBF5), Color(0xFFF1E1C8)],
-                ),
+                color: cardColor,
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: const Color(0xFFE4CFB1)),
+                border: Border.all(color: accentBorder),
                 boxShadow: const [
                   BoxShadow(
                     color: Color(0x14000000),
@@ -325,11 +334,11 @@ class __ArticlePageState extends State<_ArticlePage> {
                   const SizedBox(height: 14),
                   Text(
                     articleTitle,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 28,
                       height: 1.08,
                       fontWeight: FontWeight.w800,
-                      color: Color(0xFF1F1811),
+                      color: titleColor,
                     ),
                   ),
                   const SizedBox(height: 14),
@@ -395,15 +404,20 @@ class __ArticlePageState extends State<_ArticlePage> {
                 ),
               ),
             const SizedBox(height: 24),
-            _buildSummarySection(),
+            _buildSummarySection(
+              cardColor,
+              accentBorder,
+              titleColor,
+              bodyColor,
+            ),
             const SizedBox(height: 20),
             Container(
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFFFFFCF7),
+                color: cardColor,
                 borderRadius: BorderRadius.circular(24),
-                border: Border.all(color: const Color(0xFFE7D6C0)),
+                border: Border.all(color: accentBorder),
               ),
               child: Row(
                 children: [
@@ -444,26 +458,28 @@ class __ArticlePageState extends State<_ArticlePage> {
     );
   }
 
-  Widget _buildSummarySection() {
+  Widget _buildSummarySection(
+    Color cardColor,
+    Color accentBorder,
+    Color titleColor,
+    Color bodyColor,
+  ) {
     if (_isLoadingSummary) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFCF7),
+          color: cardColor,
           borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: const Color(0xFFE7D6C0)),
+          border: Border.all(color: accentBorder),
         ),
-        child: const Column(
+        child: Column(
           children: [
-            CircularProgressIndicator(),
-            SizedBox(height: 14),
+            const CircularProgressIndicator(),
+            const SizedBox(height: 14),
             Text(
               'Preparing your short summary...',
-              style: TextStyle(
-                color: Color(0xFF6C5846),
-                fontWeight: FontWeight.w700,
-              ),
+              style: TextStyle(color: bodyColor, fontWeight: FontWeight.w700),
             ),
           ],
         ),
@@ -475,16 +491,13 @@ class __ArticlePageState extends State<_ArticlePage> {
         width: double.infinity,
         padding: const EdgeInsets.all(18),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFFCF7),
+          color: cardColor,
           borderRadius: BorderRadius.circular(26),
-          border: Border.all(color: const Color(0xFFE7D6C0)),
+          border: Border.all(color: accentBorder),
         ),
-        child: const Text(
+        child: Text(
           'We could not load the short summary right now. Pull down to retry.',
-          style: TextStyle(
-            color: Color(0xFF8C1D18),
-            fontWeight: FontWeight.w700,
-          ),
+          style: TextStyle(color: bodyColor, fontWeight: FontWeight.w700),
         ),
       );
     }
@@ -493,9 +506,9 @@ class __ArticlePageState extends State<_ArticlePage> {
       width: double.infinity,
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFCF7),
+        color: cardColor,
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: const Color(0xFFE7D6C0)),
+        border: Border.all(color: accentBorder),
         boxShadow: const [
           BoxShadow(
             color: Color(0x10000000),
@@ -507,16 +520,16 @@ class __ArticlePageState extends State<_ArticlePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Row(
+          Row(
             children: [
-              Icon(Icons.bolt_rounded, color: Color(0xFF8C1D18)),
-              SizedBox(width: 8),
+              const Icon(Icons.bolt_rounded, color: Color(0xFF8C1D18)),
+              const SizedBox(width: 8),
               Text(
                 'Read In Short',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
-                  color: Color(0xFF241B13),
+                  color: titleColor,
                 ),
               ),
             ],
@@ -524,11 +537,7 @@ class __ArticlePageState extends State<_ArticlePage> {
           const SizedBox(height: 14),
           Text(
             _summary,
-            style: const TextStyle(
-              fontSize: 17,
-              height: 1.7,
-              color: Color(0xFF3E3024),
-            ),
+            style: TextStyle(fontSize: 17, height: 1.7, color: bodyColor),
             textAlign: TextAlign.justify,
           ),
         ],
@@ -545,12 +554,15 @@ class _MetaBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFF6E8),
+        color: isDark ? const Color(0xFF151515) : const Color(0xFFFFF6E8),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFE2CCAE)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE2CCAE),
+        ),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -559,8 +571,8 @@ class _MetaBadge extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             label,
-            style: const TextStyle(
-              color: Color(0xFF5E4733),
+            style: TextStyle(
+              color: isDark ? Colors.white : const Color(0xFF5E4733),
               fontWeight: FontWeight.w700,
             ),
           ),
@@ -587,14 +599,19 @@ class ScreenshotWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final cleanTitle = HtmlHelper.stripAndUnescape(article.title);
     final articleUrl = article.link ?? '';
+    final byline = article.author ?? 'News Desk CT';
+    final articleDate = article.date != null
+        ? DateFormat.yMMMd().format(article.date!)
+        : 'Latest';
 
     return Material(
       color: const Color(0xFFF8F3EA),
       child: Center(
         child: Container(
-          width: 720,
+          width: 600,
+          height: 600,
           margin: const EdgeInsets.all(24),
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.all(18),
           decoration: BoxDecoration(
             color: Colors.white,
             borderRadius: BorderRadius.circular(28),
@@ -616,20 +633,31 @@ class ScreenshotWidget extends StatelessWidget {
                 cleanTitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 26,
+                  fontSize: 24,
                   height: 1.2,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1F1811),
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                '$byline - $articleDate',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Color(0xFF7A6247),
+                  fontWeight: FontWeight.w600,
                 ),
               ),
               if (imageBytes != null) ...[
                 const SizedBox(height: 18),
                 ClipRRect(
                   borderRadius: BorderRadius.circular(22),
-                  child: Image.memory(
-                    imageBytes!,
-                    height: 320,
-                    fit: BoxFit.cover,
+                  child: SizedBox.square(
+                    dimension: 210,
+                    child: Image.memory(imageBytes!, fit: BoxFit.cover),
                   ),
                 ),
               ],
@@ -644,27 +672,47 @@ class ScreenshotWidget extends StatelessWidget {
                 child: Text(
                   summary,
                   style: const TextStyle(
-                    fontSize: 16,
-                    height: 1.65,
+                    fontSize: 15,
+                    height: 1.55,
                     color: Color(0xFF3E3024),
                   ),
+                  maxLines: 4,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-              const SizedBox(height: 18),
+              const Spacer(),
               Container(
                 padding: const EdgeInsets.all(18),
                 decoration: BoxDecoration(
-                  color: const Color(0xFFF8F3EA),
+                  color: const Color(0xFF8C1D18),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Text(
-                  '$cleanTitle\n\nRead more:\n\n$articleUrl',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.5,
-                    color: Color(0xFF4A2017),
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'Download The Chenab Times App',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
+                    if (articleUrl.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      Text(
+                        articleUrl,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 11,
+                          color: Color(0xFFFFE7D0),
+                          fontWeight: FontWeight.w600,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ],

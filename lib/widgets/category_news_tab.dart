@@ -130,12 +130,15 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
   @override
   Widget build(BuildContext context) {
     super.build(context);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     if (_hasError && _items.isEmpty) {
       // Full screen error for initial load failure
       return RefreshIndicator(
         color: const Color(0xFF8C1D18),
-        backgroundColor: const Color(0xFFFFFBF5),
+        backgroundColor: isDark
+            ? const Color(0xFF1A1A1A)
+            : const Color(0xFFFFFBF5),
         onRefresh: _refresh,
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
@@ -151,16 +154,24 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
                     width: 94,
                     height: 94,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
-                        colors: [Color(0xFFFFFBF5), Color(0xFFF2E2CA)],
+                        colors: isDark
+                            ? const [Color(0xFF161616), Color(0xFF212121)]
+                            : const [Color(0xFFFFFBF5), Color(0xFFF2E2CA)],
                       ),
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFFE3CCAC)),
-                      boxShadow: const [
+                      border: Border.all(
+                        color: isDark
+                            ? const Color(0xFF2A2A2A)
+                            : const Color(0xFFE3CCAC),
+                      ),
+                      boxShadow: [
                         BoxShadow(
-                          color: Color(0x16000000),
+                          color: isDark
+                              ? const Color(0x22000000)
+                              : const Color(0x16000000),
                           blurRadius: 12,
                           offset: Offset(0, 5),
                         ),
@@ -176,18 +187,20 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
                   Text(
                     _errorMessage,
                     textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Color(0xFF6C1715),
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF6C1715),
                       fontSize: 16,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
                   const SizedBox(height: 8),
-                  const Text(
+                  Text(
                     'Pull down to refresh',
                     textAlign: TextAlign.center,
                     style: TextStyle(
-                      color: Color(0xFF7A6247),
+                      color: isDark
+                          ? const Color(0xFFB5B5B5)
+                          : const Color(0xFF7A6247),
                       fontSize: 14,
                       fontWeight: FontWeight.w600,
                     ),
@@ -202,7 +215,9 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
 
     return RefreshIndicator(
       color: const Color(0xFF8C1D18),
-      backgroundColor: const Color(0xFFFFFBF5),
+      backgroundColor: isDark
+          ? const Color(0xFF1A1A1A)
+          : const Color(0xFFFFFBF5),
       onRefresh: _refresh,
       child: (_loading && _items.isEmpty)
           ? _buildSkeletonLoader()
@@ -238,18 +253,17 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
   }
 
   Widget _buildSectionHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 0, 12, 14),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFFFFFBF5), Color(0xFFF2E2CA)],
-          ),
+          color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFFFBF5),
           borderRadius: BorderRadius.circular(24),
-          border: Border.all(color: const Color(0xFFE4CEB2)),
+          border: Border.all(
+            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE4CEB2),
+          ),
           boxShadow: const [
             BoxShadow(
               color: Color(0x14000000),
@@ -281,11 +295,11 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: const [
+                children: [
                   Text(
                     'Top Stories',
                     style: TextStyle(
-                      color: Color(0xFF4A2017),
+                      color: isDark ? Colors.white : const Color(0xFF4A2017),
                       fontSize: 18,
                       fontWeight: FontWeight.w800,
                     ),
@@ -294,7 +308,9 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
                   Text(
                     'Latest verified news from this category',
                     style: TextStyle(
-                      color: Color(0xFF7A6247),
+                      color: isDark
+                          ? const Color(0xFFB5B5B5)
+                          : const Color(0xFF7A6247),
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
                     ),
@@ -314,10 +330,11 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
     int articleIndex,
     String? imageUrl,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFCF7),
+        color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFFFCF7),
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
@@ -377,11 +394,11 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
                         HtmlHelper.stripAndUnescape(article.title ?? ''),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 19,
                           height: 1.15,
                           fontWeight: FontWeight.w800,
-                          color: Color(0xFF1F1811),
+                          color: isDark ? Colors.white : Color(0xFF1F1811),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -389,10 +406,10 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
                         HtmlHelper.stripAndUnescape(article.excerpt ?? ''),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 15,
                           height: 1.25,
-                          color: Color(0xFF5A4B3D),
+                          color: isDark ? Color(0xFFB5B5B5) : Color(0xFF5A4B3D),
                         ),
                       ),
                       const SizedBox(height: 10),
@@ -403,10 +420,12 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
                               'By ${article.author ?? 'News Desk'}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w800,
-                                color: Color(0xFF34271B),
+                                color: isDark
+                                    ? Colors.white
+                                    : Color(0xFF34271B),
                               ),
                             ),
                           ),
@@ -415,10 +434,12 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
                             article.date != null
                                 ? DateFormat.yMMMd().format(article.date!)
                                 : '',
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w700,
-                              color: Color(0xFF6F604E),
+                              color: isDark
+                                  ? Color(0xFFB5B5B5)
+                                  : Color(0xFF6F604E),
                             ),
                           ),
                         ],
@@ -435,8 +456,9 @@ class _CategoryNewsTabState extends State<CategoryNewsTab>
   }
 
   Widget _buildSkeletonLoader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      color: const Color(0xFFF8F3EA),
+      color: isDark ? const Color(0xFF0D0D0D) : const Color(0xFFF8F3EA),
       child: ListView(
         physics: const AlwaysScrollableScrollPhysics(),
         padding: const EdgeInsets.fromLTRB(12, 12, 12, 24),

@@ -52,6 +52,7 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   bool _loading = true;
   bool _streakSyncPending = false;
   bool _syncingStreak = false;
+  bool _wasLoggedIn = false;
 
   final TextEditingController _scrambleController = TextEditingController();
   final TextEditingController _crosswordController = TextEditingController();
@@ -60,12 +61,15 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    AuthService.instance.addListener(_handleAuthStateChange);
+    _wasLoggedIn = AuthService.instance.isAuthenticated;
     _loadProgress();
   }
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
+    AuthService.instance.removeListener(_handleAuthStateChange);
     _flushStreakSync();
     _scrambleController.dispose();
     _crosswordController.dispose();
@@ -74,11 +78,23 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed &&
+        AuthService.instance.isAuthenticated) {
+      _syncAndReloadStreak();
+    }
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
       _flushStreakSync();
     }
+  }
+
+  void _handleAuthStateChange() {
+    final isLoggedIn = AuthService.instance.isAuthenticated;
+    if (isLoggedIn && !_wasLoggedIn) {
+      _syncAndReloadStreak();
+    }
+    _wasLoggedIn = isLoggedIn;
   }
 
   Future<void> _loadProgress() async {
@@ -106,6 +122,14 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     if (mounted) {
       setState(() => _loading = false);
     }
+  }
+
+  Future<void> _syncAndReloadStreak() async {
+    if (!AuthService.instance.isAuthenticated) return;
+    try {
+      await AuthService.instance.syncLocalBestStreak();
+      await _loadProgress();
+    } catch (_) {}
   }
 
   Future<void> _saveProgress() async {

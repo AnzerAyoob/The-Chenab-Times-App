@@ -219,15 +219,41 @@ class AuthService extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     final localStreak = prefs.getInt('games_scramble_streak') ?? 0;
     final bestLocalStreak = prefs.getInt(_bestLocalStreakKey) ?? 0;
-    final bestSynced = prefs.getInt(_bestSyncedStreakKey) ?? 0;
-    final streakToSync = [
+    final bestSyncedStreak = prefs.getInt(_bestSyncedStreakKey) ?? 0;
+    final serverBestStreak = await fetchServerBestStreak();
+    final knownServerStreak = serverBestStreak > bestSyncedStreak
+        ? serverBestStreak
+        : bestSyncedStreak;
+    final mergedStreak = [
       localStreak,
       bestLocalStreak,
-      bestSynced,
+      bestSyncedStreak,
+      serverBestStreak,
     ].reduce((a, b) => a > b ? a : b);
-    if (streakToSync > bestSynced) {
-      await syncStreak(streakToSync);
+
+    await prefs.setInt('games_scramble_streak', mergedStreak);
+    await prefs.setInt(_bestLocalStreakKey, mergedStreak);
+    await prefs.setInt(_bestSyncedStreakKey, knownServerStreak);
+
+    if (mergedStreak > knownServerStreak) {
+      await syncStreak(mergedStreak);
     }
+  }
+
+  Future<int> fetchServerBestStreak() async {
+    if (!isAuthenticated || _currentUser == null) return 0;
+
+    try {
+      final entries = await fetchLeaderboard();
+      final currentName = _currentUser!.name.trim().toLowerCase();
+      for (final entry in entries) {
+        if (entry.name.trim().toLowerCase() == currentName) {
+          return entry.bestStreak;
+        }
+      }
+    } catch (_) {}
+
+    return 0;
   }
 
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {

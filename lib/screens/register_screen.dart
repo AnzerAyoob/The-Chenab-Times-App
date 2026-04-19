@@ -53,6 +53,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secondaryColor = isDark
+        ? const Color(0xFFB5B5B5)
+        : const Color(0xFF6E6254);
     return Scaffold(
       appBar: AppBar(title: const Text('Create Account')),
       body: SafeArea(
@@ -74,10 +78,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Use your name, email, and password to sync saved articles and streaks.',
                       style: TextStyle(
-                        color: Color(0xFF6E6254),
+                        color: secondaryColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

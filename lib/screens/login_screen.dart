@@ -51,6 +51,10 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final secondaryColor = isDark
+        ? const Color(0xFFB5B5B5)
+        : const Color(0xFF6E6254);
     return Scaffold(
       appBar: AppBar(title: const Text('Log In')),
       body: SafeArea(
@@ -72,10 +76,10 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'Log in to sync bookmarks and your game streak.',
                       style: TextStyle(
-                        color: Color(0xFF6E6254),
+                        color: secondaryColor,
                         fontWeight: FontWeight.w600,
                       ),
                     ),

@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:the_chenab_times/screens/about_us_screen.dart';
 import 'package:the_chenab_times/screens/leaderboard_screen.dart';
 import 'package:the_chenab_times/screens/login_screen.dart';
+import 'package:the_chenab_times/screens/profile_screen.dart';
 import 'package:the_chenab_times/screens/privacy_policy_screen.dart';
 import 'package:the_chenab_times/screens/register_screen.dart';
 import 'package:the_chenab_times/screens/settings_screen.dart';
@@ -39,16 +40,16 @@ class MoreScreen extends StatelessWidget {
                   ? (authService.currentUser?.email ?? '')
                   : 'Sync saved articles and streaks',
             ),
-            onTap: authService.isAuthenticated
-                ? null
-                : () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const LoginScreen(),
-                      ),
-                    );
-                  },
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => authService.isAuthenticated
+                      ? const ProfileScreen()
+                      : const LoginScreen(),
+                ),
+              );
+            },
           ),
           if (!authService.isAuthenticated)
             ListTile(

@@ -14,6 +14,13 @@ class SettingsScreen extends StatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final tileColor = isDark
+        ? const Color(0xFF1A1A1A)
+        : const Color(0xFFFFFCF7);
+    final borderColor = isDark
+        ? const Color(0xFF2A2A2A)
+        : const Color(0xFFE4CFB1);
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: Consumer2<ThemeService, LanguageService>(
@@ -22,26 +29,43 @@ class _SettingsScreenState extends State<SettingsScreen> {
           final currentLang = _getLanguageString(languageService.appLocale);
 
           return ListView(
+            padding: const EdgeInsets.fromLTRB(16, 10, 16, 20),
             children: <Widget>[
               _buildSectionTitle(context, 'General'),
-              ListTile(
-                leading: const Icon(Icons.brightness_6_outlined),
-                title: const Text('Theme'),
-                subtitle: Text(currentTheme),
-                onTap: () => _showThemeDialog(context, themeService),
+              Container(
+                decoration: BoxDecoration(
+                  color: tileColor,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: borderColor),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.brightness_6_outlined),
+                  title: const Text('Theme'),
+                  subtitle: Text(currentTheme),
+                  onTap: () => _showThemeDialog(context, themeService),
+                ),
               ),
-              ListTile(
-                leading: const Icon(Icons.language_outlined),
-                title: const Text('Language'),
-                subtitle: Text(currentLang),
-                onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          const LanguageSelectionScreen(isInitialSetup: false),
-                    ),
-                  );
-                },
+              const SizedBox(height: 12),
+              Container(
+                decoration: BoxDecoration(
+                  color: tileColor,
+                  borderRadius: BorderRadius.circular(18),
+                  border: Border.all(color: borderColor),
+                ),
+                child: ListTile(
+                  leading: const Icon(Icons.language_outlined),
+                  title: const Text('Language'),
+                  subtitle: Text(currentLang),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => const LanguageSelectionScreen(
+                          isInitialSetup: false,
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
             ],
           );

@@ -265,10 +265,38 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer2<ThemeService, LanguageService>(
       builder: (context, themeService, languageService, child) {
+        final lightColorScheme =
+            ColorScheme.fromSeed(
+              seedColor: const Color(0xFF8C1D18),
+              brightness: Brightness.light,
+            ).copyWith(
+              surface: const Color(0xFFFFFBF5),
+              surfaceContainerHighest: const Color(0xFFF2E2CA),
+            );
+        final darkColorScheme = const ColorScheme(
+          brightness: Brightness.dark,
+          primary: Color(0xFFB22D1F),
+          onPrimary: Colors.white,
+          secondary: Color(0xFFE3C08F),
+          onSecondary: Color(0xFF0D0D0D),
+          error: Color(0xFFFF6B6B),
+          onError: Colors.white,
+          surface: Color(0xFF1A1A1A),
+          onSurface: Colors.white,
+          tertiary: Color(0xFF7A6247),
+          onTertiary: Colors.white,
+          outline: Color(0xFF2A2A2A),
+          shadow: Colors.black,
+          scrim: Colors.black,
+          inverseSurface: Color(0xFFF8F3EA),
+          onInverseSurface: Color(0xFF0D0D0D),
+          inversePrimary: Color(0xFF8C1D18),
+          surfaceTint: Color(0xFFB22D1F),
+        );
         final buttonStyle = ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: Theme.of(context).colorScheme.primary,
-            foregroundColor: Theme.of(context).colorScheme.onPrimary,
+            backgroundColor: const Color(0xFF8C1D18),
+            foregroundColor: Colors.white,
             padding: const EdgeInsets.symmetric(vertical: 15.0),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12.0),
@@ -286,20 +314,42 @@ class MyApp extends StatelessWidget {
           debugShowCheckedModeBanner: false,
           themeMode: themeService.themeMode,
           theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.red,
-              brightness: Brightness.light,
-            ),
+            colorScheme: lightColorScheme,
             useMaterial3: true,
             elevatedButtonTheme: buttonStyle,
+            scaffoldBackgroundColor: const Color(0xFFF8F3EA),
+            cardColor: const Color(0xFFFFFCF7),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFFF8F3EA),
+              foregroundColor: Color(0xFF1F1811),
+              surfaceTintColor: Colors.transparent,
+            ),
           ),
           darkTheme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(
-              seedColor: Colors.red,
-              brightness: Brightness.dark,
-            ),
+            colorScheme: darkColorScheme,
             useMaterial3: true,
             elevatedButtonTheme: buttonStyle,
+            scaffoldBackgroundColor: const Color(0xFF0D0D0D),
+            canvasColor: const Color(0xFF0D0D0D),
+            cardColor: const Color(0xFF1A1A1A),
+            dividerColor: const Color(0xFF2A2A2A),
+            appBarTheme: const AppBarTheme(
+              backgroundColor: Color(0xFF0D0D0D),
+              foregroundColor: Colors.white,
+              surfaceTintColor: Colors.transparent,
+            ),
+            dialogTheme: const DialogThemeData(
+              backgroundColor: Color(0xFF1A1A1A),
+            ),
+            inputDecorationTheme: const InputDecorationTheme(
+              filled: true,
+              fillColor: Color(0xFF1A1A1A),
+              border: OutlineInputBorder(),
+            ),
+            listTileTheme: const ListTileThemeData(
+              iconColor: Colors.white,
+              textColor: Colors.white,
+            ),
           ),
           locale: languageService.appLocale,
           supportedLocales: const [Locale('en'), Locale('hi'), Locale('ur')],
@@ -369,6 +419,7 @@ class _MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     final localizations = AppLocalizations.of(context)!;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final navItems = <_PremiumNavItemData>[
       _PremiumNavItemData(
         label: localizations.translate('home'),
@@ -393,20 +444,29 @@ class _MainScreenState extends State<MainScreen> {
       appBar: _selectedIndex == 0
           ? null
           : AppBar(
-              backgroundColor: const Color(0xFFF6E8D5),
+              backgroundColor: isDark
+                  ? const Color(0xFF0D0D0D)
+                  : const Color(0xFFF6E8D5),
               surfaceTintColor: Colors.transparent,
               elevation: 0,
               shadowColor: Colors.transparent,
               scrolledUnderElevation: 0,
               flexibleSpace: Container(
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
-                    colors: [Color(0xFFFFFBF5), Color(0xFFF1DDC1)],
+                    colors: isDark
+                        ? const [Color(0xFF0D0D0D), Color(0xFF1A1A1A)]
+                        : const [Color(0xFFFFFBF5), Color(0xFFF1DDC1)],
                   ),
                   border: Border(
-                    bottom: BorderSide(color: Color(0xFFE1CCAF), width: 1),
+                    bottom: BorderSide(
+                      color: isDark
+                          ? const Color(0xFF2A2A2A)
+                          : const Color(0xFFE1CCAF),
+                      width: 1,
+                    ),
                   ),
                 ),
               ),
@@ -481,6 +541,7 @@ class _PremiumAppBarActionButtonState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Semantics(
       label: widget.semanticLabel,
       button: true,
@@ -503,16 +564,24 @@ class _PremiumAppBarActionButtonState
               width: 46,
               height: 46,
               decoration: BoxDecoration(
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [Color(0xFFFFF6E8), Color(0xFFF0D9B9)],
+                  colors: isDark
+                      ? const [Color(0xFF171717), Color(0xFF232323)]
+                      : const [Color(0xFFFFF6E8), Color(0xFFF0D9B9)],
                 ),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: const Color(0xFFE3C08F)),
-                boxShadow: const [
+                border: Border.all(
+                  color: isDark
+                      ? const Color(0xFF2A2A2A)
+                      : const Color(0xFFE3C08F),
+                ),
+                boxShadow: [
                   BoxShadow(
-                    color: Color(0x14000000),
+                    color: isDark
+                        ? const Color(0x22000000)
+                        : const Color(0x14000000),
                     blurRadius: 12,
                     offset: Offset(0, 4),
                   ),
@@ -554,22 +623,27 @@ class _PremiumBottomNavigationBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(12, 0, 12, 12),
       child: Container(
         margin: const EdgeInsets.only(top: 10),
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 10),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFFFFFCF6), Color(0xFFF3E4CF)],
+            colors: isDark
+                ? const [Color(0xFF151515), Color(0xFF1E1E1E)]
+                : const [Color(0xFFFFFCF6), Color(0xFFF3E4CF)],
           ),
           borderRadius: BorderRadius.circular(28),
-          border: Border.all(color: const Color(0xFFE3CCAC)),
-          boxShadow: const [
+          border: Border.all(
+            color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFE3CCAC),
+          ),
+          boxShadow: [
             BoxShadow(
-              color: Color(0x19000000),
+              color: isDark ? const Color(0x26000000) : const Color(0x19000000),
               blurRadius: 24,
               offset: Offset(0, 10),
             ),
@@ -619,13 +693,14 @@ class _PremiumBottomNavigationItemState
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final selected = widget.selected;
     final highlightColor = selected
         ? const Color(0xFF8C1D18)
-        : const Color(0xFF7A6A58);
+        : (isDark ? const Color(0xFFB5B5B5) : const Color(0xFF7A6A58));
     final labelColor = selected
         ? const Color(0xFF5C120F)
-        : const Color(0xFF6E6254);
+        : (isDark ? const Color(0xFFD0D0D0) : const Color(0xFF6E6254));
 
     return AnimatedScale(
       scale: _pressed ? 0.96 : 1,
@@ -655,12 +730,14 @@ class _PremiumBottomNavigationItemState
                         colors: [Color(0xFFFFF4E2), Color(0xFFF3D1A7)],
                       )
                     : null,
-                color: selected ? null : Colors.transparent,
+                color: selected
+                    ? null
+                    : (isDark ? const Color(0xFF111111) : Colors.transparent),
                 borderRadius: BorderRadius.circular(22),
                 border: Border.all(
                   color: selected
                       ? const Color(0xFFE3C08F)
-                      : Colors.transparent,
+                      : (isDark ? const Color(0xFF202020) : Colors.transparent),
                 ),
                 boxShadow: selected
                     ? const [
@@ -688,10 +765,15 @@ class _PremiumBottomNavigationItemState
                               end: Alignment.bottomRight,
                               colors: [Color(0xFFB22D1F), Color(0xFF7C1714)],
                             )
-                          : const LinearGradient(
+                          : LinearGradient(
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
-                              colors: [Color(0xFFF8EFE4), Color(0xFFEADBC7)],
+                              colors: isDark
+                                  ? const [Color(0xFF1D1D1D), Color(0xFF2A2A2A)]
+                                  : const [
+                                      Color(0xFFF8EFE4),
+                                      Color(0xFFEADBC7),
+                                    ],
                             ),
                       boxShadow: [
                         BoxShadow(

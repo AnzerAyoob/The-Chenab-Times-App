@@ -45,6 +45,16 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final surfaceColor = isDark
+        ? const Color(0xFF1A1A1A)
+        : const Color(0xFFFFFCF7);
+    final borderColor = isDark
+        ? const Color(0xFF2A2A2A)
+        : const Color(0xFFE4CFB1);
+    final subtitleColor = isDark
+        ? const Color(0xFFB5B5B5)
+        : const Color(0xFF7A6247);
     return Scaffold(
       appBar: AppBar(title: const Text('Leaderboard')),
       body: RefreshIndicator(
@@ -92,17 +102,19 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                 return Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFFCF7),
+                    color: surfaceColor,
                     borderRadius: BorderRadius.circular(20),
-                    border: Border.all(color: const Color(0xFFE4CFB1)),
+                    border: Border.all(color: borderColor),
                   ),
                   child: Row(
                     children: [
                       _RankBadge(rank: index + 1),
                       const SizedBox(width: 14),
                       CircleAvatar(
-                        radius: 24,
-                        backgroundColor: const Color(0xFFF2E2CA),
+                        radius: 18,
+                        backgroundColor: isDark
+                            ? const Color(0xFF252525)
+                            : const Color(0xFFF2E2CA),
                         backgroundImage: NetworkImage(
                           getUserAvatar(
                             '${entry.name}@thechenabtimes.local',
@@ -125,8 +137,8 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                             const SizedBox(height: 4),
                             Text(
                               _rankLabel(index + 1),
-                              style: const TextStyle(
-                                color: Color(0xFF7A6247),
+                              style: TextStyle(
+                                color: subtitleColor,
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
