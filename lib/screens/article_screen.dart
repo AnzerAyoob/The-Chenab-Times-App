@@ -68,16 +68,10 @@ class _ArticleScreenState extends State<ArticleScreen> {
     final isSaved = provider.isArticleSaved(_currentArticle.link);
     if (!isSaved) {
       await provider.saveArticle(_currentArticle);
-      AppStatusHandler.showStatusToast(
-        message: 'Article saved',
-        type: StatusType.success,
-      );
+      AppStatusHandler.showStatusToast(message: 'Article saved', type: StatusType.success);
     } else {
       await provider.deleteArticle(_currentArticle.id!, _currentArticle.link!);
-      AppStatusHandler.showStatusToast(
-        message: 'Removed from saved articles',
-        type: StatusType.info,
-      );
+      AppStatusHandler.showStatusToast(message: 'Removed from saved articles', type: StatusType.info);
     }
   }
 
@@ -91,10 +85,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
     );
 
     try {
-      final summary = await SummarizationService.instance.summarizeArticle(
-        _currentArticle.content ?? _currentArticle.excerpt ?? '',
-        articleLink: _currentArticle.link,
-      );
+      final summary = await SummarizationService.instance.summarizeArticle(_currentArticle.content ?? _currentArticle.excerpt ?? '', articleLink: _currentArticle.link);
       Uint8List? imageBytes;
       if (_currentArticle.imageUrl != null) {
         try {
@@ -110,11 +101,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
       final Uint8List image = await _screenshotController.captureFromWidget(
         Theme(
           data: lightTheme,
-          child: ScreenshotWidget(
-            article: _currentArticle,
-            summary: summary,
-            imageBytes: imageBytes,
-          ),
+          child: ScreenshotWidget(article: _currentArticle, summary: summary, imageBytes: imageBytes),
         ),
         delay: const Duration(milliseconds: 2000),
       );
@@ -128,37 +115,28 @@ class _ArticleScreenState extends State<ArticleScreen> {
             title: const Text('Share Screenshot'),
             content: Image.memory(image),
             actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Share'),
-              ),
+              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
+              ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Share')),
             ],
           ),
         );
 
         if (confirmed == true) {
           final directory = await getTemporaryDirectory();
-          final path =
-              '${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
+          final path = '${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
           final imageFile = File(path);
           await imageFile.writeAsBytes(image);
 
           // Updated to use the non-deprecated SharePlus pattern
-          await Share.shareXFiles([
-            XFile(path),
-          ], text: 'Check out this article from The Chenab Times!');
+          await Share.shareXFiles(
+            [XFile(path)],
+            text: 'Check out this article from The Chenab Times!',
+          );
         }
       }
     } catch (e) {
       if (mounted) Navigator.of(context).pop();
-      AppStatusHandler.showStatusToast(
-        message: 'Failed to create screenshot: $e',
-        type: StatusType.error,
-      );
+      AppStatusHandler.showStatusToast(message: 'Failed to create screenshot: $e', type: StatusType.error);
     }
   }
 
@@ -166,9 +144,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
   Widget build(BuildContext context) {
     return Consumer<SavedArticlesProvider>(
       builder: (context, savedArticlesProvider, child) {
-        final isSaved = savedArticlesProvider.isArticleSaved(
-          _currentArticle.link,
-        );
+        final isSaved = savedArticlesProvider.isArticleSaved(_currentArticle.link);
 
         return Scaffold(
           appBar: AppBar(
@@ -176,25 +152,17 @@ class _ArticleScreenState extends State<ArticleScreen> {
             centerTitle: true,
             actions: [
               IconButton(
-                icon: Icon(
-                  isSaved ? Icons.bookmark : Icons.bookmark_border_outlined,
-                ),
+                icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border_outlined),
                 onPressed: () => _toggleSave(savedArticlesProvider),
               ),
-              IconButton(
-                icon: const Icon(Icons.share_outlined),
-                onPressed: _shareArticle,
-              ),
+              IconButton(icon: const Icon(Icons.share_outlined), onPressed: _shareArticle),
             ],
           ),
           body: PageView.builder(
             controller: _pageController,
             itemCount: widget.articles.length,
             onPageChanged: _onPageChanged,
-            itemBuilder: (context, index) => _ArticlePage(
-              key: ValueKey(widget.articles[index].link),
-              article: widget.articles[index],
-            ),
+            itemBuilder: (context, index) => _ArticlePage(key: ValueKey(widget.articles[index].link), article: widget.articles[index]),
           ),
         );
       },
@@ -223,77 +191,191 @@ class __ArticlePageState extends State<_ArticlePage> {
 
   Future<void> _generateSummary() async {
     if (!mounted) return;
-    setState(() {
-      _isLoadingSummary = true;
-      _summaryError = false;
-    });
+    setState(() { _isLoadingSummary = true; _summaryError = false; });
     try {
       final text = widget.article.content ?? widget.article.excerpt ?? '';
-      final summary = await SummarizationService.instance.summarizeArticle(
-        text,
-        articleLink: widget.article.link,
-      );
-      if (mounted)
-        setState(() {
-          _summary = summary;
-          _isLoadingSummary = false;
-        });
+      final summary = await SummarizationService.instance.summarizeArticle(text, articleLink: widget.article.link);
+      if (mounted) setState(() { _summary = summary; _isLoadingSummary = false; });
     } catch (e) {
-      if (mounted)
-        setState(() {
-          _summaryError = true;
-          _isLoadingSummary = false;
-        });
+      if (mounted) setState(() { _summaryError = true; _isLoadingSummary = false; });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final imageUrl = widget.article.imageUrl ?? widget.article.thumbnailUrl;
+    final articleTitle = HtmlHelper.stripAndUnescape(widget.article.title);
+    final articleDate = widget.article.date != null
+        ? DateFormat.yMMMMd().format(widget.article.date!)
+        : 'Latest update';
+    final author = widget.article.author ?? 'News Desk CT';
 
     return RefreshIndicator(
       onRefresh: _generateSummary,
       child: SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.fromLTRB(16, 16, 16, 28),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              HtmlHelper.stripAndUnescape(widget.article.title),
-              style: theme.textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.bold,
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(18),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [Color(0xFFFFFBF5), Color(0xFFF1E1C8)],
+                ),
+                borderRadius: BorderRadius.circular(28),
+                border: Border.all(color: const Color(0xFFE4CFB1)),
+                boxShadow: const [
+                  BoxShadow(
+                    color: Color(0x14000000),
+                    blurRadius: 18,
+                    offset: Offset(0, 8),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 7,
+                    ),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF8C1D18),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'READ IN SHORT',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.9,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    articleTitle,
+                    style: const TextStyle(
+                      fontSize: 28,
+                      height: 1.08,
+                      fontWeight: FontWeight.w800,
+                      color: Color(0xFF1F1811),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Wrap(
+                    spacing: 10,
+                    runSpacing: 10,
+                    children: [
+                      _MetaBadge(icon: Icons.person_rounded, label: author),
+                      _MetaBadge(
+                        icon: Icons.calendar_today_rounded,
+                        label: articleDate,
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 16),
+            const SizedBox(height: 18),
             if (imageUrl != null)
               ClipRRect(
-                borderRadius: BorderRadius.circular(12.0),
-                child: CachedNetworkImage(
-                  imageUrl: imageUrl,
-                  height: 200,
-                  fit: BoxFit.cover,
-                  placeholder: (context, url) =>
-                      const Center(child: CircularProgressIndicator()),
-                  errorWidget: (c, u, e) => const Icon(Icons.broken_image),
+                borderRadius: BorderRadius.circular(28.0),
+                child: Stack(
+                  children: [
+                    CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      height: 250,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      placeholder: (context, url) =>
+                          Container(
+                            height: 250,
+                            color: const Color(0xFFE8D7BF),
+                            child: const Center(
+                              child: CircularProgressIndicator(),
+                            ),
+                          ),
+                      errorWidget: (c, u, e) => Container(
+                        height: 250,
+                        color: const Color(0xFFE8D7BF),
+                        child: const Icon(Icons.broken_image, size: 40),
+                      ),
+                    ),
+                    Positioned(
+                      left: 14,
+                      right: 14,
+                      bottom: 14,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.48),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: const Text(
+                          'Quick summary crafted for fast reading',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
             const SizedBox(height: 24),
             _buildSummarySection(),
-            const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: () {
-                if (widget.article.link != null) {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (_) =>
-                          ArticleWebViewScreen(url: widget.article.link!),
+            const SizedBox(height: 20),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFCF7),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFE7D6C0)),
+              ),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: FilledButton.icon(
+                      onPressed: () {
+                        if (widget.article.link != null) {
+                          Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) =>
+                                  ArticleWebViewScreen(url: widget.article.link!),
+                            ),
+                          );
+                        }
+                      },
+                      style: FilledButton.styleFrom(
+                        backgroundColor: const Color(0xFF8C1D18),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 15),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      icon: const Icon(Icons.chrome_reader_mode_rounded),
+                      label: const Text(
+                        'Read Full Article',
+                        style: TextStyle(fontWeight: FontWeight.w800),
+                      ),
                     ),
-                  );
-                }
-              },
-              child: const Text('Read Full Article'),
+                  ),
+                ],
+              ),
             ),
           ],
         ),
@@ -302,13 +384,130 @@ class __ArticlePageState extends State<_ArticlePage> {
   }
 
   Widget _buildSummarySection() {
-    if (_isLoadingSummary)
-      return const Center(child: CircularProgressIndicator());
-    if (_summaryError) return const Text('Error loading summary.');
-    return Text(
-      _summary,
-      style: const TextStyle(fontSize: 16, height: 1.5),
-      textAlign: TextAlign.justify,
+    if (_isLoadingSummary) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFCF7),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: const Color(0xFFE7D6C0)),
+        ),
+        child: const Column(
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 14),
+            Text(
+              'Preparing your short summary...',
+              style: TextStyle(
+                color: Color(0xFF6C5846),
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (_summaryError) {
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.all(22),
+        decoration: BoxDecoration(
+          color: const Color(0xFFFFFCF7),
+          borderRadius: BorderRadius.circular(26),
+          border: Border.all(color: const Color(0xFFE7D6C0)),
+        ),
+        child: const Text(
+          'We could not load the short summary right now. Pull down to retry.',
+          style: TextStyle(
+            color: Color(0xFF8C1D18),
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(22),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFCF7),
+        borderRadius: BorderRadius.circular(26),
+        border: Border.all(color: const Color(0xFFE7D6C0)),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x10000000),
+            blurRadius: 14,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(
+                Icons.auto_awesome_rounded,
+                color: Color(0xFF8C1D18),
+              ),
+              SizedBox(width: 8),
+              Text(
+                'Summary',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  color: Color(0xFF241B13),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Text(
+            _summary,
+            style: const TextStyle(
+              fontSize: 17,
+              height: 1.7,
+              color: Color(0xFF3E3024),
+            ),
+            textAlign: TextAlign.justify,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _MetaBadge extends StatelessWidget {
+  const _MetaBadge({required this.icon, required this.label});
+
+  final IconData icon;
+  final String label;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFF6E8),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(color: const Color(0xFFE2CCAE)),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: const Color(0xFF8C1D18)),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: const TextStyle(
+              color: Color(0xFF5E4733),
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
@@ -318,12 +517,7 @@ class ScreenshotWidget extends StatelessWidget {
   final String summary;
   final Uint8List? imageBytes;
 
-  const ScreenshotWidget({
-    super.key,
-    required this.article,
-    required this.summary,
-    this.imageBytes,
-  });
+  const ScreenshotWidget({super.key, required this.article, required this.summary, this.imageBytes});
 
   @override
   Widget build(BuildContext context) {
@@ -336,25 +530,11 @@ class ScreenshotWidget extends StatelessWidget {
         children: [
           Image.asset('lib/images/app_heading.png', height: 30),
           const SizedBox(height: 16),
-          Text(
-            HtmlHelper.stripAndUnescape(article.title),
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black,
-            ),
-          ),
+          Text(HtmlHelper.stripAndUnescape(article.title), style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black)),
           const SizedBox(height: 16),
-          if (imageBytes != null)
-            ClipRRect(
-              borderRadius: BorderRadius.circular(8),
-              child: Image.memory(imageBytes!),
-            ),
+          if (imageBytes != null) ClipRRect(borderRadius: BorderRadius.circular(8), child: Image.memory(imageBytes!)),
           const SizedBox(height: 16),
-          Text(
-            summary,
-            style: const TextStyle(fontSize: 14, color: Colors.black87),
-          ),
+          Text(summary, style: const TextStyle(fontSize: 14, color: Colors.black87)),
         ],
       ),
     );

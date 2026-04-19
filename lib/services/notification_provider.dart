@@ -7,8 +7,7 @@ import 'package:the_chenab_times/services/rss_service.dart';
 import 'package:the_chenab_times/utils/html_helper.dart';
 
 class NotificationProvider extends ChangeNotifier {
-  static final NotificationProvider _instance =
-      NotificationProvider._internal();
+  static final NotificationProvider _instance = NotificationProvider._internal();
   factory NotificationProvider() => _instance;
   NotificationProvider._internal();
 
@@ -19,15 +18,15 @@ class NotificationProvider extends ChangeNotifier {
   List<NotificationModel> _notifications = [];
   bool _isLoading = true;
 
-  List<NotificationModel> get notifications =>
-      List.unmodifiable(_notifications);
+  List<NotificationModel> get notifications => List.unmodifiable(_notifications);
   bool get isLoading => _isLoading;
 
   Future<void> loadNotifications() async {
     _isLoading = true;
     notifyListeners();
     try {
-      _notifications = await _dbService.getNotifications();
+      final loaded = await _dbService.getNotifications();
+      _notifications = await _dedupeNotifications(loaded);
     } catch (e) {
       debugPrint("Failed to load notifications: $e");
     }
@@ -37,16 +36,16 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<void> addNotification(NotificationModel notification) async {
     try {
-      await _dbService.saveNotification(notification);
-
-      // Avoid duplicates by notification_id (OneSignal's unique id)
-      final alreadyExists = _notifications.any(
-        (n) => n.notificationId == notification.notificationId,
+      final duplicate = _notifications.any(
+        (item) => _notificationSignature(item) == _notificationSignature(notification),
       );
-      if (!alreadyExists) {
-        _notifications.insert(0, notification);
-        notifyListeners();
+      if (duplicate) {
+        return;
       }
+
+      await _dbService.saveNotification(notification);
+      _notifications.insert(0, notification);
+      notifyListeners();
     } catch (e) {
       debugPrint("Error saving notification: $e");
     }
@@ -58,8 +57,7 @@ class NotificationProvider extends ChangeNotifier {
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      final knownIds =
-          prefs.getStringList(_knownPostIdsKey)?.toSet() ?? <String>{};
+      final knownIds = prefs.getStringList(_knownPostIdsKey)?.toSet() ?? <String>{};
       final latestPosts = await _rssService.fetchPostsPage(
         perPage: 20,
         languageCode: languageCode,
@@ -90,7 +88,10 @@ class NotificationProvider extends ChangeNotifier {
         ...validPosts.map((post) => '${post.id}'),
         ...knownIds,
       }.toList();
-      await prefs.setStringList(_knownPostIdsKey, mergedIds.take(100).toList());
+      await prefs.setStringList(
+        _knownPostIdsKey,
+        mergedIds.take(100).toList(),
+      );
 
       return unseenPosts.length;
     } catch (e) {
@@ -122,15 +123,15 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   String _notificationBody(Article article) {
-    final cleanExcerpt = HtmlHelper.stripAndUnescape(
-      article.excerpt,
-    ).replaceAll(RegExp(r'\s+'), ' ').trim();
+    final cleanExcerpt = HtmlHelper.stripAndUnescape(article.excerpt)
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
     if (cleanExcerpt.isNotEmpty) {
       return cleanExcerpt;
     }
-    final cleanContent = HtmlHelper.stripAndUnescape(
-      article.content,
-    ).replaceAll(RegExp(r'\s+'), ' ').trim();
+    final cleanContent = HtmlHelper.stripAndUnescape(article.content)
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim();
     if (cleanContent.isEmpty) {
       return 'Tap to read the latest update.';
     }
@@ -138,5 +139,34 @@ class NotificationProvider extends ChangeNotifier {
       return cleanContent;
     }
     return '${cleanContent.substring(0, 137)}...';
+  }
+
+  Future<List<NotificationModel>> _dedupeNotifications(
+    List<NotificationModel> items,
+  ) async {
+    final seen = <String>{};
+    final unique = <NotificationModel>[];
+
+    for (final item in items) {
+      final signature = _notificationSignature(item);
+      if (seen.add(signature)) {
+        unique.add(item);
+      } else if (item.id != null) {
+        await _dbService.deleteNotification(item.id!);
+      }
+    }
+
+    return unique;
+  }
+
+  String _notificationSignature(NotificationModel item) {
+    final postId = item.postId;
+    if (postId != null) {
+      return 'post:$postId';
+    }
+
+    final title = item.title.trim().toLowerCase();
+    final body = item.body.trim().toLowerCase();
+    return 'text:$title|$body';
   }
 }
