@@ -20,7 +20,12 @@ jobs:
           flutter-version: "3.41.6"
 
       - name: Decode google-services.json
-        run: echo "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
+        run: printf '%s' "${{ secrets.GOOGLE_SERVICES_JSON }}" | base64 --decode > android/app/google-services.json
+
+      - name: Verify google-services package names
+        run: |
+          grep -n '"package_name"' android/app/google-services.json
+          grep -q '"package_name": "com.thechenabtimes.app"' android/app/google-services.json
 
       - name: Decode Keystore
         run: |
