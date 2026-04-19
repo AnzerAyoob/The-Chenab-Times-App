@@ -10,7 +10,8 @@ import 'database_service.dart';
 class SummarizationService {
   SummarizationService._internal();
 
-  static final SummarizationService instance = SummarizationService._internal();
+  static final SummarizationService instance =
+      SummarizationService._internal();
 
   static const _summaryEndpoint =
       'https://api.thechenabtimes.com/summarise.php';
@@ -26,7 +27,7 @@ class SummarizationService {
 
     if (rawText.isEmpty &&
         (articleLink == null || articleLink.trim().isEmpty)) {
-      return _finalFallback(excerpt);
+      return _finalFallback();
     }
 
     if (articleLink != null) {
@@ -34,7 +35,7 @@ class SummarizationService {
 
       if (cached != null &&
           cached.trim().isNotEmpty &&
-          !cached.contains('Summary unavailable')) {
+          !cached.contains('Summary not available')) {
         return cached;
       }
     }
@@ -81,7 +82,7 @@ class SummarizationService {
 
     summary ??= _excerptFallback(excerpt);
 
-    summary ??= _finalFallback(excerpt);
+    summary ??= _finalFallback();
 
     if (articleLink != null && summary.isNotEmpty) {
       await _db.cacheSummary(articleLink, summary);
@@ -138,7 +139,7 @@ class SummarizationService {
     return cleanExcerpt;
   }
 
-  String _finalFallback(String? excerpt) {
+  String _finalFallback() {
     return 'Summary not available at this moment. Please read full article.';
   }
 }
