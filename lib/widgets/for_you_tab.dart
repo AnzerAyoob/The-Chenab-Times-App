@@ -408,6 +408,7 @@ class _ForYouTabState extends State<ForYouTab> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_hasError && _items.isEmpty) {
       return Center(
         child: Column(
@@ -416,7 +417,7 @@ class _ForYouTabState extends State<ForYouTab> {
             const Icon(
               Icons.location_off_outlined,
               size: 72,
-              color: Colors.grey,
+              color: isDark ? Color(0xFFB5B5B5) : Colors.grey,
             ),
             const SizedBox(height: 16),
             Text(_errorMessage, textAlign: TextAlign.center),
@@ -454,6 +455,7 @@ class _ForYouTabState extends State<ForYouTab> {
 
   Widget _buildTopSection(BuildContext context) {
     if (_items.isEmpty) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final featuredItems = _items.take(5).toList();
     final tickerItems = _items.take(8).toList();
@@ -503,13 +505,23 @@ class _ForYouTabState extends State<ForYouTab> {
                           CachedNetworkImage(
                             imageUrl: imageUrl,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                Container(color: const Color(0xFFE2D8C5)),
-                            errorWidget: (context, url, error) =>
-                                Container(color: const Color(0xFFD9CBB1)),
+                            placeholder: (context, url) => Container(
+                              color: isDark
+                                  ? const Color(0xFF242424)
+                                  : const Color(0xFFE2D8C5),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              color: isDark
+                                  ? const Color(0xFF242424)
+                                  : const Color(0xFFD9CBB1),
+                            ),
                           )
                         else
-                          Container(color: const Color(0xFFD9CBB1)),
+                          Container(
+                            color: isDark
+                                ? const Color(0xFF242424)
+                                : const Color(0xFFD9CBB1),
+                          ),
                         const DecoratedBox(
                           decoration: BoxDecoration(
                             gradient: LinearGradient(
@@ -599,8 +611,10 @@ class _ForYouTabState extends State<ForYouTab> {
           margin: const EdgeInsets.fromLTRB(12, 14, 12, 0),
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
           decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              colors: [Color(0xFF7F1422), Color(0xFFB33B27)],
+            gradient: LinearGradient(
+              colors: isDark
+                  ? const [Color(0xFF6A1620), Color(0xFF8D271C)]
+                  : const [Color(0xFF7F1422), Color(0xFFB33B27)],
             ),
             borderRadius: BorderRadius.circular(18),
           ),
@@ -677,7 +691,7 @@ class _ForYouTabState extends State<ForYouTab> {
             'Trending Topics',
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
               fontWeight: FontWeight.w800,
-              color: const Color(0xFF251C12),
+              color: isDark ? Colors.white : const Color(0xFF251C12),
             ),
           ),
         ),
@@ -701,16 +715,17 @@ class _ForYouTabState extends State<ForYouTab> {
     Article article,
     int articleIndex,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final imageUrl = article.thumbnailUrl ?? article.imageUrl;
 
     return Container(
       margin: const EdgeInsets.fromLTRB(12, 0, 12, 14),
       decoration: BoxDecoration(
-        color: const Color(0xFFFFFCF7),
+        color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFFFFCF7),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
-            color: Color(0x18000000),
+            color: isDark ? const Color(0x22000000) : const Color(0x18000000),
             blurRadius: 12,
             offset: Offset(0, 6),
           ),
@@ -740,17 +755,24 @@ class _ForYouTabState extends State<ForYouTab> {
                         ? CachedNetworkImage(
                             imageUrl: imageUrl,
                             fit: BoxFit.cover,
-                            placeholder: (context, url) =>
-                                Container(color: const Color(0xFFE4D7C2)),
+                            placeholder: (context, url) => Container(
+                              color: isDark
+                                  ? const Color(0xFF242424)
+                                  : const Color(0xFFE4D7C2),
+                            ),
                             errorWidget: (context, url, error) => Container(
-                              color: const Color(0xFFE4D7C2),
+                              color: isDark
+                                  ? const Color(0xFF242424)
+                                  : const Color(0xFFE4D7C2),
                               child: const Icon(
                                 Icons.image_not_supported_outlined,
                               ),
                             ),
                           )
                         : Container(
-                            color: const Color(0xFFE4D7C2),
+                            color: isDark
+                                ? const Color(0xFF242424)
+                                : const Color(0xFFE4D7C2),
                             child: const Icon(
                               Icons.image_not_supported_outlined,
                             ),
@@ -766,23 +788,28 @@ class _ForYouTabState extends State<ForYouTab> {
                         HtmlHelper.stripAndUnescape(article.title),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 19,
-                          height: 1.15,
-                          fontWeight: FontWeight.w800,
-                          color: Color(0xFF1F1811),
-                        ),
+                        style:
+                            const TextStyle(
+                              fontSize: 19,
+                              height: 1.15,
+                              fontWeight: FontWeight.w800,
+                            ).copyWith(
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF1F1811),
+                            ),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         HtmlHelper.stripAndUnescape(article.excerpt),
                         maxLines: 3,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 15,
-                          height: 1.25,
-                          color: Color(0xFF5A4B3D),
-                        ),
+                        style: const TextStyle(fontSize: 15, height: 1.25)
+                            .copyWith(
+                              color: isDark
+                                  ? const Color(0xFFB5B5B5)
+                                  : const Color(0xFF5A4B3D),
+                            ),
                       ),
                       const SizedBox(height: 10),
                       Row(
@@ -792,11 +819,15 @@ class _ForYouTabState extends State<ForYouTab> {
                               'By ${article.author ?? 'News Desk'}',
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
-                              style: const TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w800,
-                                color: Color(0xFF34271B),
-                              ),
+                              style:
+                                  const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w800,
+                                  ).copyWith(
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF34271B),
+                                  ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -804,11 +835,15 @@ class _ForYouTabState extends State<ForYouTab> {
                             article.date != null
                                 ? DateFormat.yMMMd().format(article.date!)
                                 : '',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
-                              color: Color(0xFF6F604E),
-                            ),
+                            style:
+                                const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ).copyWith(
+                                  color: isDark
+                                      ? const Color(0xFFB5B5B5)
+                                      : const Color(0xFF6F604E),
+                                ),
                           ),
                         ],
                       ),
@@ -837,17 +872,20 @@ class _TopicChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 9),
       decoration: BoxDecoration(
-        color: const Color(0xFFF8F3EA),
+        color: isDark ? const Color(0xFF1A1A1A) : const Color(0xFFF8F3EA),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFFD4C2A9)),
+        border: Border.all(
+          color: isDark ? const Color(0xFF2A2A2A) : const Color(0xFFD4C2A9),
+        ),
       ),
       child: Text(
         label,
-        style: const TextStyle(
-          color: Color(0xFF4A3824),
+        style: TextStyle(
+          color: isDark ? Colors.white : const Color(0xFF4A3824),
           fontWeight: FontWeight.w700,
         ),
       ),

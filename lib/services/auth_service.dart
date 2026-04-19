@@ -242,7 +242,7 @@ class AuthService extends ChangeNotifier {
     await prefs.setInt(_bestLocalStreakKey, mergedStreak);
     await prefs.setInt(_bestSyncedStreakKey, knownServerStreak);
 
-    if (mergedStreak > knownServerStreak) {
+    if (mergedStreak > 0) {
       await syncStreak(mergedStreak);
     } else {
       _streakSyncVersion++;

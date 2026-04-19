@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'database_service.dart';
 import '../utils/html_helper.dart';
@@ -61,8 +62,15 @@ class SummarizationService {
           }
           return cleanedSummary;
         }
+        debugPrint('Summarizer returned empty summary for $articleLink');
+      } else {
+        debugPrint(
+          'Summarizer failed with status ${response.statusCode}: ${response.body}',
+        );
       }
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Summarizer error for $articleLink: $e');
+    }
 
     return "Summary unavailable for this article.";
   }
@@ -92,10 +100,11 @@ class SummarizationService {
     }
 
     final prepared = buffer.toString().trim();
-    if (prepared.isNotEmpty) {
+    if (prepared.length >= 900) {
       return prepared;
     }
 
-    return cleanText.length > 2200 ? cleanText.substring(0, 2200) : cleanText;
+    final fallbackLength = cleanText.length > 2800 ? 2800 : cleanText.length;
+    return cleanText.substring(0, fallbackLength);
   }
 }

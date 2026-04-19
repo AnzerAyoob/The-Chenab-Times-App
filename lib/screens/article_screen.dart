@@ -597,7 +597,6 @@ class ScreenshotWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cleanTitle = HtmlHelper.stripAndUnescape(article.title);
-    final articleUrl = article.link ?? '';
     final byline = article.author ?? 'News Desk CT';
     final articleDate = article.date != null
         ? DateFormat.yMMMd().format(article.date!)
@@ -632,12 +631,12 @@ class ScreenshotWidget extends StatelessWidget {
                 cleanTitle,
                 textAlign: TextAlign.center,
                 style: const TextStyle(
-                  fontSize: 24,
+                  fontSize: 22,
                   height: 1.2,
                   fontWeight: FontWeight.w800,
                   color: Color(0xFF1F1811),
                 ),
-                maxLines: 2,
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 6),
@@ -686,32 +685,14 @@ class ScreenshotWidget extends StatelessWidget {
                   color: const Color(0xFF8C1D18),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: Column(
-                  children: [
-                    const Text(
-                      'Download The Chenab Times App',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                    if (articleUrl.isNotEmpty) ...[
-                      const SizedBox(height: 8),
-                      Text(
-                        articleUrl,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 11,
-                          color: Color(0xFFFFE7D0),
-                          fontWeight: FontWeight.w600,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ],
-                  ],
+                child: const Text(
+                  'Download The Chenab Times App',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                  ),
                 ),
               ),
             ],

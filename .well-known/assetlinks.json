@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.thechenabtimes.app",
+      "sha256_cert_fingerprints": [
+        "sha256:453806ec78a305b4705e52118f62b2f60f94e7468ebebed1e8b8d15d373f0bb4"
+      ]
+    }
+  }
+]

@@ -49,6 +49,7 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   int _bestSyncedStreak = 0;
   int _bestLocalScrambleStreak = 0;
   int _sessionBestStreak = 0;
+  final List<int> _recentVocabIndexes = [];
   bool _loading = true;
   bool _streakSyncPending = false;
   bool _syncingStreak = false;
@@ -112,6 +113,9 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     _bestSyncedStreak = prefs.getInt(_bestSyncedStreakKey) ?? 0;
     _bestLocalScrambleStreak = prefs.getInt(_bestLocalScrambleStreakKey) ?? 0;
     _sessionBestStreak = max(_scrambleStreak, _bestLocalScrambleStreak);
+    _streakSyncPending =
+        _scrambleStreak > _bestSyncedStreak ||
+        _bestLocalScrambleStreak > _bestSyncedStreak;
 
     _scramblePuzzle = _nextScramblePuzzle();
     _vocabQuestion = _nextVocabQuestion();
@@ -129,6 +133,10 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     try {
       await AuthService.instance.syncLocalBestStreak();
       await _loadProgress();
+      if (_streakSyncPending) {
+        await _flushStreakSync();
+        await _loadProgress();
+      }
     } catch (_) {}
   }
 
@@ -738,6 +746,9 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
         _scrambleController.clear();
       });
       _showFeedback('Correct! Great spelling.', isSuccess: true);
+      if (AuthService.instance.isAuthenticated && _streakSyncPending) {
+        _flushStreakSync();
+      }
     } else {
       final sessionPeak = max(_sessionBestStreak, _scrambleStreak);
       setState(() => _scrambleStreak = 0);
@@ -952,9 +963,151 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
         answer: 'question',
         options: ['question', 'celebration', 'accident', 'reward'],
       ),
+      _VocabQuestion(
+        word: 'precise',
+        answer: 'exact',
+        options: ['exact', 'noisy', 'delayed', 'hidden'],
+      ),
+      _VocabQuestion(
+        word: 'adapt',
+        answer: 'adjust',
+        options: ['adjust', 'wander', 'damage', 'repeat'],
+      ),
+      _VocabQuestion(
+        word: 'observe',
+        answer: 'watch carefully',
+        options: [
+          'watch carefully',
+          'forget quickly',
+          'argue loudly',
+          'move away',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'essential',
+        answer: 'necessary',
+        options: ['necessary', 'fashionable', 'temporary', 'fragile'],
+      ),
+      _VocabQuestion(
+        word: 'expand',
+        answer: 'grow larger',
+        options: ['grow larger', 'become silent', 'look brighter', 'stay flat'],
+      ),
+      _VocabQuestion(
+        word: 'resolve',
+        answer: 'solve',
+        options: ['solve', 'delay', 'decorate', 'ignore'],
+      ),
+      _VocabQuestion(
+        word: 'curious',
+        answer: 'eager to know',
+        options: [
+          'eager to know',
+          'too tired',
+          'ready to leave',
+          'afraid to speak',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'benefit',
+        answer: 'advantage',
+        options: ['advantage', 'mistake', 'surface', 'warning'],
+      ),
+      _VocabQuestion(
+        word: 'maintain',
+        answer: 'keep in good condition',
+        options: [
+          'keep in good condition',
+          'throw away',
+          'copy fully',
+          'speed up',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'relevant',
+        answer: 'closely connected',
+        options: [
+          'closely connected',
+          'pleasant to hear',
+          'ready to sell',
+          'open all night',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'transparent',
+        answer: 'easy to understand',
+        options: [
+          'easy to understand',
+          'covered in dust',
+          'hard to lift',
+          'very expensive',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'collaborate',
+        answer: 'work together',
+        options: [
+          'work together',
+          'work alone',
+          'travel quickly',
+          'rest early',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'durable',
+        answer: 'long-lasting',
+        options: [
+          'long-lasting',
+          'brightly colored',
+          'soft-spoken',
+          'poorly lit',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'highlight',
+        answer: 'emphasize',
+        options: ['emphasize', 'remove', 'translate', 'delay'],
+      ),
+      _VocabQuestion(
+        word: 'evaluate',
+        answer: 'judge carefully',
+        options: [
+          'judge carefully',
+          'close forever',
+          'repeat daily',
+          'travel abroad',
+        ],
+      ),
+      _VocabQuestion(
+        word: 'efficient',
+        answer: 'working well without waste',
+        options: [
+          'working well without waste',
+          'easy to replace',
+          'full of noise',
+          'late to arrive',
+        ],
+      ),
     ];
-    _lastVocabIndex = _nextDifferentIndex(questions.length, _lastVocabIndex);
+    _lastVocabIndex = _nextIndexAvoidingRecent(
+      questions.length,
+      _recentVocabIndexes,
+    );
+    _recentVocabIndexes.add(_lastVocabIndex);
+    if (_recentVocabIndexes.length > 5) {
+      _recentVocabIndexes.removeAt(0);
+    }
     return questions[_lastVocabIndex];
+  }
+
+  int _nextIndexAvoidingRecent(int length, List<int> recentIndexes) {
+    if (length <= 1) return 0;
+    final available = List<int>.generate(length, (index) => index)
+      ..removeWhere(recentIndexes.contains);
+    final pool = available.isNotEmpty
+        ? available
+        : List<int>.generate(length, (index) => index);
+    return pool[_random.nextInt(pool.length)];
   }
 
   _SentenceChallenge _nextSentenceChallenge() {
