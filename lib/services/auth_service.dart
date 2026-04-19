@@ -231,11 +231,12 @@ class AuthService extends ChangeNotifier {
       throw const AuthException('Could not load leaderboard right now.');
     }
 
-    final entries = payload
-        .whereType<Map<String, dynamic>>()
-        .map(LeaderboardEntry.fromMap)
-        .toList()
-      ..sort((a, b) => b.bestStreak.compareTo(a.bestStreak));
+    final entries =
+        payload
+            .whereType<Map<String, dynamic>>()
+            .map(LeaderboardEntry.fromMap)
+            .toList()
+          ..sort((a, b) => b.bestStreak.compareTo(a.bestStreak));
 
     return entries.take(10).toList();
   }
@@ -292,7 +293,10 @@ class AuthService extends ChangeNotifier {
 
     try {
       final response = await _client
-          .get(Uri.parse('$_baseUrl$path'), headers: _headers(authenticated: true))
+          .get(
+            Uri.parse('$_baseUrl$path'),
+            headers: _headers(authenticated: true),
+          )
           .timeout(const Duration(seconds: 20));
       return await _validateAuthorizedResponse(response);
     } on TimeoutException {
@@ -372,7 +376,9 @@ class AuthService extends ChangeNotifier {
     throw AuthException(message);
   }
 
-  Future<http.Response> _validateAuthorizedResponse(http.Response response) async {
+  Future<http.Response> _validateAuthorizedResponse(
+    http.Response response,
+  ) async {
     if (response.statusCode == 401) {
       await logout();
       throw const AuthException('Your session expired. Please log in again.');

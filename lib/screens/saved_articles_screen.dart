@@ -102,7 +102,10 @@ class SavedArticlesScreen extends StatelessWidget {
                     color: Colors.red,
                     padding: const EdgeInsets.symmetric(horizontal: 20),
                     alignment: Alignment.centerRight,
-                    child: const Icon(Icons.delete_outline, color: Colors.white),
+                    child: const Icon(
+                      Icons.delete_outline,
+                      color: Colors.white,
+                    ),
                   ),
                   child: ArticleListItem(article: article),
                 );

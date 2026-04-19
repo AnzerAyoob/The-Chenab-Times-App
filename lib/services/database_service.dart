@@ -119,17 +119,13 @@ class DatabaseService {
   // User Methods
   Future<int> createUser(UserModel user) async {
     final db = await database;
-    return await db.insert(
-      'users',
-      {
-        'id': user.id,
-        'username': user.name,
-        'password_hash': '',
-        'email': user.email,
-        'profile_picture': user.photo,
-      },
-      conflictAlgorithm: ConflictAlgorithm.fail,
-    );
+    return await db.insert('users', {
+      'id': user.id,
+      'username': user.name,
+      'password_hash': '',
+      'email': user.email,
+      'profile_picture': user.photo,
+    }, conflictAlgorithm: ConflictAlgorithm.fail);
   }
 
   Future<UserModel?> getUser(String username) async {

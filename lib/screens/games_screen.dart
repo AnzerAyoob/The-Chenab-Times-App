@@ -14,8 +14,7 @@ class GamesScreen extends StatefulWidget {
   State<GamesScreen> createState() => _GamesScreenState();
 }
 
-class _GamesScreenState extends State<GamesScreen>
-    with WidgetsBindingObserver {
+class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   static const _scrambleStreakKey = 'games_scramble_streak';
   static const _vocabScoreKey = 'games_vocab_score';
   static const _sentenceScoreKey = 'games_sentence_score';

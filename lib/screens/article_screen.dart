@@ -69,16 +69,19 @@ class _ArticleScreenState extends State<ArticleScreen> {
       final isSaved = provider.isArticleSaved(_currentArticle.link);
       if (!isSaved) {
         await provider.saveArticle(_currentArticle);
-        AppStatusHandler.showStatusToast(message: 'Article saved', type: StatusType.success);
+        AppStatusHandler.showStatusToast(
+          message: 'Article saved',
+          type: StatusType.success,
+        );
       } else {
         await provider.deleteArticle(_currentArticle.link!);
-        AppStatusHandler.showStatusToast(message: 'Removed from saved articles', type: StatusType.info);
+        AppStatusHandler.showStatusToast(
+          message: 'Removed from saved articles',
+          type: StatusType.info,
+        );
       }
     } catch (e) {
-      AppStatusHandler.showStatusToast(
-        message: '$e',
-        type: StatusType.error,
-      );
+      AppStatusHandler.showStatusToast(message: '$e', type: StatusType.error);
     }
   }
 
@@ -92,7 +95,10 @@ class _ArticleScreenState extends State<ArticleScreen> {
     );
 
     try {
-      final summary = await SummarizationService.instance.summarizeArticle(_currentArticle.content ?? _currentArticle.excerpt ?? '', articleLink: _currentArticle.link);
+      final summary = await SummarizationService.instance.summarizeArticle(
+        _currentArticle.content ?? _currentArticle.excerpt ?? '',
+        articleLink: _currentArticle.link,
+      );
       Uint8List? imageBytes;
       if (_currentArticle.imageUrl != null) {
         try {
@@ -108,7 +114,11 @@ class _ArticleScreenState extends State<ArticleScreen> {
       final Uint8List image = await _screenshotController.captureFromWidget(
         Theme(
           data: lightTheme,
-          child: ScreenshotWidget(article: _currentArticle, summary: summary, imageBytes: imageBytes),
+          child: ScreenshotWidget(
+            article: _currentArticle,
+            summary: summary,
+            imageBytes: imageBytes,
+          ),
         ),
         delay: const Duration(milliseconds: 2000),
       );
@@ -122,18 +132,27 @@ class _ArticleScreenState extends State<ArticleScreen> {
             title: const Text('Share Screenshot'),
             content: Image.memory(image),
             actions: [
-              TextButton(onPressed: () => Navigator.of(context).pop(false), child: const Text('Cancel')),
-              ElevatedButton(onPressed: () => Navigator.of(context).pop(true), child: const Text('Share')),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Share'),
+              ),
             ],
           ),
         );
 
         if (confirmed == true) {
           final directory = await getTemporaryDirectory();
-          final path = '${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
+          final path =
+              '${directory.path}/screenshot_${DateTime.now().millisecondsSinceEpoch}.png';
           final imageFile = File(path);
           await imageFile.writeAsBytes(image);
-          final cleanTitle = HtmlHelper.stripAndUnescape(_currentArticle.title).trim();
+          final cleanTitle = HtmlHelper.stripAndUnescape(
+            _currentArticle.title,
+          ).trim();
           final articleUrl = _currentArticle.link ?? '';
 
           await SharePlus.instance.share(
@@ -146,7 +165,10 @@ class _ArticleScreenState extends State<ArticleScreen> {
       }
     } catch (e) {
       if (mounted) Navigator.of(context).pop();
-      AppStatusHandler.showStatusToast(message: 'Failed to create screenshot: $e', type: StatusType.error);
+      AppStatusHandler.showStatusToast(
+        message: 'Failed to create screenshot: $e',
+        type: StatusType.error,
+      );
     }
   }
 
@@ -154,7 +176,9 @@ class _ArticleScreenState extends State<ArticleScreen> {
   Widget build(BuildContext context) {
     return Consumer<SavedArticlesProvider>(
       builder: (context, savedArticlesProvider, child) {
-        final isSaved = savedArticlesProvider.isArticleSaved(_currentArticle.link);
+        final isSaved = savedArticlesProvider.isArticleSaved(
+          _currentArticle.link,
+        );
 
         return Scaffold(
           appBar: AppBar(
@@ -167,7 +191,9 @@ class _ArticleScreenState extends State<ArticleScreen> {
             actions: [
               IconButton(
                 tooltip: 'Save article',
-                icon: Icon(isSaved ? Icons.bookmark : Icons.bookmark_border_outlined),
+                icon: Icon(
+                  isSaved ? Icons.bookmark : Icons.bookmark_border_outlined,
+                ),
                 onPressed: () => _toggleSave(savedArticlesProvider),
               ),
               IconButton(
@@ -182,7 +208,10 @@ class _ArticleScreenState extends State<ArticleScreen> {
             controller: _pageController,
             itemCount: widget.articles.length,
             onPageChanged: _onPageChanged,
-            itemBuilder: (context, index) => _ArticlePage(key: ValueKey(widget.articles[index].link), article: widget.articles[index]),
+            itemBuilder: (context, index) => _ArticlePage(
+              key: ValueKey(widget.articles[index].link),
+              article: widget.articles[index],
+            ),
           ),
         );
       },
@@ -211,13 +240,27 @@ class __ArticlePageState extends State<_ArticlePage> {
 
   Future<void> _generateSummary() async {
     if (!mounted) return;
-    setState(() { _isLoadingSummary = true; _summaryError = false; });
+    setState(() {
+      _isLoadingSummary = true;
+      _summaryError = false;
+    });
     try {
       final text = widget.article.content ?? widget.article.excerpt ?? '';
-      final summary = await SummarizationService.instance.summarizeArticle(text, articleLink: widget.article.link);
-      if (mounted) setState(() { _summary = summary; _isLoadingSummary = false; });
+      final summary = await SummarizationService.instance.summarizeArticle(
+        text,
+        articleLink: widget.article.link,
+      );
+      if (mounted)
+        setState(() {
+          _summary = summary;
+          _isLoadingSummary = false;
+        });
     } catch (e) {
-      if (mounted) setState(() { _summaryError = true; _isLoadingSummary = false; });
+      if (mounted)
+        setState(() {
+          _summaryError = true;
+          _isLoadingSummary = false;
+        });
     }
   }
 
@@ -315,14 +358,11 @@ class __ArticlePageState extends State<_ArticlePage> {
                       height: 250,
                       width: double.infinity,
                       fit: BoxFit.cover,
-                      placeholder: (context, url) =>
-                          Container(
-                            height: 250,
-                            color: const Color(0xFFE8D7BF),
-                            child: const Center(
-                              child: CircularProgressIndicator(),
-                            ),
-                          ),
+                      placeholder: (context, url) => Container(
+                        height: 250,
+                        color: const Color(0xFFE8D7BF),
+                        child: const Center(child: CircularProgressIndicator()),
+                      ),
                       errorWidget: (c, u, e) => Container(
                         height: 250,
                         color: const Color(0xFFE8D7BF),
@@ -373,8 +413,9 @@ class __ArticlePageState extends State<_ArticlePage> {
                         if (widget.article.link != null) {
                           Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) =>
-                                  ArticleWebViewScreen(url: widget.article.link!),
+                              builder: (_) => ArticleWebViewScreen(
+                                url: widget.article.link!,
+                              ),
                             ),
                           );
                         }
@@ -468,10 +509,7 @@ class __ArticlePageState extends State<_ArticlePage> {
         children: [
           const Row(
             children: [
-              Icon(
-                Icons.bolt_rounded,
-                color: Color(0xFF8C1D18),
-              ),
+              Icon(Icons.bolt_rounded, color: Color(0xFF8C1D18)),
               SizedBox(width: 8),
               Text(
                 'Read In Short',
@@ -538,7 +576,12 @@ class ScreenshotWidget extends StatelessWidget {
   final String summary;
   final Uint8List? imageBytes;
 
-  const ScreenshotWidget({super.key, required this.article, required this.summary, this.imageBytes});
+  const ScreenshotWidget({
+    super.key,
+    required this.article,
+    required this.summary,
+    this.imageBytes,
+  });
 
   @override
   Widget build(BuildContext context) {

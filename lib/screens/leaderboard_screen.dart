@@ -86,7 +86,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         radius: 24,
                         backgroundColor: const Color(0xFFF2E2CA),
                         backgroundImage: NetworkImage(
-                          getUserAvatar('${entry.name}@thechenabtimes.local', null),
+                          getUserAvatar(
+                            '${entry.name}@thechenabtimes.local',
+                            null,
+                          ),
                         ),
                       ),
                       const SizedBox(width: 14),
@@ -170,10 +173,7 @@ class _RankBadge extends StatelessWidget {
       ),
       child: Text(
         '#$rank',
-        style: TextStyle(
-          color: color,
-          fontWeight: FontWeight.w900,
-        ),
+        style: TextStyle(color: color, fontWeight: FontWeight.w900),
       ),
     );
   }

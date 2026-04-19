@@ -242,7 +242,8 @@ void main() async {
             ChangeNotifierProvider.value(value: AuthService.instance),
             ChangeNotifierProvider(create: (_) => LocationService()..init()),
             ChangeNotifierProvider(
-              create: (_) => SavedArticlesProvider(dbService, AuthService.instance),
+              create: (_) =>
+                  SavedArticlesProvider(dbService, AuthService.instance),
             ),
             ChangeNotifierProvider.value(value: notificationProvider),
             Provider.value(value: dbService),
