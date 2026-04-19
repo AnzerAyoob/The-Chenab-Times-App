@@ -17,17 +17,24 @@ class SummarizationService {
 
   final DatabaseService _db = DatabaseService();
 
-  Future<String> summarizeArticle(String text, {String? articleLink}) async {
+  Future<String> summarizeArticle(
+    String text, {
+    String? articleLink,
+    String? excerpt,
+  }) async {
     final rawText = text.trim();
 
     if (rawText.isEmpty &&
         (articleLink == null || articleLink.trim().isEmpty)) {
-      return 'Summary unavailable.';
+      return _finalFallback(excerpt);
     }
 
     if (articleLink != null) {
       final cached = await _db.getCachedSummary(articleLink);
-      if (cached != null && cached.trim().isNotEmpty) {
+
+      if (cached != null &&
+          cached.trim().isNotEmpty &&
+          !cached.contains('Summary unavailable')) {
         return cached;
       }
     }
@@ -38,6 +45,7 @@ class SummarizationService {
         articleLink != null &&
         articleLink.isNotEmpty) {
       final extractedText = await _extractArticleTextFromHtml(articleLink);
+
       if (extractedText.isNotEmpty) {
         articleText = extractedText;
       }
@@ -63,7 +71,7 @@ class SummarizationService {
 
         summary = data['summary']?.toString().trim();
 
-        if (summary != null && summary.length < 80) {
+        if (summary != null && summary.length < 40) {
           summary = null;
         }
       }
@@ -71,7 +79,9 @@ class SummarizationService {
       debugPrint('Summarizer error: $e');
     }
 
-    summary ??= _excerptFallback(articleText);
+    summary ??= _excerptFallback(excerpt);
+
+    summary ??= _finalFallback(excerpt);
 
     if (articleLink != null && summary.isNotEmpty) {
       await _db.cacheSummary(articleLink, summary);
@@ -116,17 +126,19 @@ class SummarizationService {
     return paragraphs.join(' ');
   }
 
-  String _excerptFallback(String text) {
-    final sentences = RegExp(r'[^.!?]+[.!?]')
-        .allMatches(text)
-        .map((e) => e.group(0)?.trim() ?? '')
-        .where((e) => e.length > 40)
-        .toList();
+  String? _excerptFallback(String? excerpt) {
+    if (excerpt == null) return null;
 
-    if (sentences.isEmpty) return 'Summary unavailable.';
+    final cleanExcerpt = HtmlHelper.stripAndUnescape(excerpt)
+        .replaceAll(RegExp(r'\\s+'), ' ')
+        .trim();
 
-    final shortSummary = sentences.take(3).join(' ');
+    if (cleanExcerpt.length < 30) return null;
 
-    return shortSummary;
+    return cleanExcerpt;
+  }
+
+  String _finalFallback(String? excerpt) {
+    return 'Summary not available at this moment. Please read full article.';
   }
 }
