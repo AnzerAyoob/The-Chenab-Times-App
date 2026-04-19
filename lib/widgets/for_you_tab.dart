@@ -414,7 +414,7 @@ class _ForYouTabState extends State<ForYouTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(
+            Icon(
               Icons.location_off_outlined,
               size: 72,
               color: isDark ? Color(0xFFB5B5B5) : Colors.grey,
