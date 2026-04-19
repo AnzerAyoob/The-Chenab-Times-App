@@ -11,11 +11,14 @@ class LeaderboardScreen extends StatefulWidget {
 
 class _LeaderboardScreenState extends State<LeaderboardScreen> {
   late Future<List<LeaderboardEntry>> _future;
+  int _lastSyncVersion = -1;
 
   @override
   void initState() {
     super.initState();
     _future = AuthService.instance.fetchLeaderboard();
+    _lastSyncVersion = AuthService.instance.streakSyncVersion;
+    AuthService.instance.addListener(_handleAuthUpdates);
   }
 
   Future<void> _refresh() async {
@@ -23,6 +26,21 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
       _future = AuthService.instance.fetchLeaderboard();
     });
     await _future;
+  }
+
+  void _handleAuthUpdates() {
+    final currentVersion = AuthService.instance.streakSyncVersion;
+    if (currentVersion == _lastSyncVersion || !mounted) return;
+    _lastSyncVersion = currentVersion;
+    setState(() {
+      _future = AuthService.instance.fetchLeaderboard();
+    });
+  }
+
+  @override
+  void dispose() {
+    AuthService.instance.removeListener(_handleAuthUpdates);
+    super.dispose();
   }
 
   @override

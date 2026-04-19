@@ -13,6 +13,7 @@ class NotificationProvider extends ChangeNotifier {
   NotificationProvider._internal();
 
   static const _knownPostIdsKey = 'notification_known_post_ids';
+  static const _deletedNotificationsKey = 'deleted_notifications';
 
   final DatabaseService _dbService = DatabaseService();
   final RssService _rssService = RssService();
@@ -28,7 +29,19 @@ class NotificationProvider extends ChangeNotifier {
     notifyListeners();
     try {
       final loaded = await _dbService.getNotifications();
-      _notifications = await _dedupeNotifications(loaded);
+      final deletedSignatures = await _deletedNotificationSignatures();
+      final filtered = loaded.where((item) {
+        return !deletedSignatures.contains(_notificationSignature(item));
+      }).toList();
+
+      for (final item in loaded) {
+        if (item.id != null &&
+            deletedSignatures.contains(_notificationSignature(item))) {
+          await _dbService.deleteNotification(item.id!);
+        }
+      }
+
+      _notifications = await _dedupeNotifications(filtered);
     } catch (e) {
       debugPrint("Failed to load notifications: $e");
     }
@@ -38,6 +51,11 @@ class NotificationProvider extends ChangeNotifier {
 
   Future<void> addNotification(NotificationModel notification) async {
     try {
+      final deletedSignatures = await _deletedNotificationSignatures();
+      if (deletedSignatures.contains(_notificationSignature(notification))) {
+        return;
+      }
+
       final duplicate = _notifications.any(
         (item) =>
             _notificationSignature(item) ==
@@ -63,6 +81,7 @@ class NotificationProvider extends ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       final knownIds =
           prefs.getStringList(_knownPostIdsKey)?.toSet() ?? <String>{};
+      final deletedSignatures = await _deletedNotificationSignatures();
       final latestPosts = await _rssService.fetchPostsPage(
         perPage: 20,
         languageCode: languageCode,
@@ -80,7 +99,11 @@ class NotificationProvider extends ChangeNotifier {
       }
 
       final unseenPosts = validPosts
-          .where((post) => !knownIds.contains('${post.id}'))
+          .where((post) {
+            final postId = '${post.id}';
+            return !knownIds.contains(postId) &&
+                !deletedSignatures.contains('post:$postId');
+          })
           .toList()
           .reversed
           .toList();
@@ -103,10 +126,28 @@ class NotificationProvider extends ChangeNotifier {
   }
 
   Future<void> clearAllNotifications() async {
+    final deletedSignatures = await _deletedNotificationSignatures();
+    deletedSignatures.addAll(
+      _notifications.map(_notificationSignature),
+    );
+    await _saveDeletedNotificationSignatures(deletedSignatures);
     await _dbService.deleteAllNotifications();
     _notifications.clear();
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove(_knownPostIdsKey);
+    notifyListeners();
+  }
+
+  Future<void> deleteNotification(NotificationModel notification) async {
+    final deletedSignatures = await _deletedNotificationSignatures();
+    deletedSignatures.add(_notificationSignature(notification));
+    await _saveDeletedNotificationSignatures(deletedSignatures);
+
+    if (notification.id != null) {
+      await _dbService.deleteNotification(notification.id!);
+    }
+
+    _notifications.removeWhere(
+      (item) => _notificationSignature(item) == _notificationSignature(notification),
+    );
     notifyListeners();
   }
 
@@ -170,5 +211,18 @@ class NotificationProvider extends ChangeNotifier {
     final title = item.title.trim().toLowerCase();
     final body = item.body.trim().toLowerCase();
     return 'text:$title|$body';
+  }
+
+  Future<Set<String>> _deletedNotificationSignatures() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getStringList(_deletedNotificationsKey)?.toSet() ?? <String>{};
+  }
+
+  Future<void> _saveDeletedNotificationSignatures(Set<String> signatures) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setStringList(
+      _deletedNotificationsKey,
+      signatures.take(200).toList(),
+    );
   }
 }

@@ -51,11 +51,13 @@ class AuthService extends ChangeNotifier {
   UserModel? _currentUser;
   bool _initialized = false;
   bool _busy = false;
+  int _streakSyncVersion = 0;
 
   UserModel? get currentUser => _currentUser;
   bool get isAuthenticated => _token != null && _currentUser != null;
   bool get isBusy => _busy;
   bool get isReady => _initialized;
+  int get streakSyncVersion => _streakSyncVersion;
 
   Future<void> init() async {
     if (_initialized) return;
@@ -154,6 +156,8 @@ class AuthService extends ChangeNotifier {
     _currentUser = null;
     await _secureStorage.delete(key: _tokenKey);
     await _secureStorage.delete(key: _userKey);
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_bestSyncedStreakKey);
     notifyListeners();
   }
 
@@ -205,6 +209,8 @@ class AuthService extends ChangeNotifier {
 
     final prefs = await SharedPreferences.getInstance();
     await prefs.setInt(_bestSyncedStreakKey, streak);
+    _streakSyncVersion++;
+    notifyListeners();
   }
 
   Future<void> syncLocalBestStreak() async {

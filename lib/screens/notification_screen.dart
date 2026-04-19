@@ -151,26 +151,45 @@ class _NotificationScreenState extends State<NotificationScreen> {
               itemCount: provider.notifications.length,
               itemBuilder: (context, index) {
                 final notification = provider.notifications[index];
-                return ListTile(
-                  leading: notification.imageUrl != null
-                      ? Image.network(
-                          notification.imageUrl!,
-                          width: 50,
-                          height: 50,
-                          fit: BoxFit.cover,
-                        )
-                      : const Icon(Icons.notifications),
-                  title: Text(
-                    notification.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                return Dismissible(
+                  key: ValueKey(
+                    notification.notificationId ??
+                        '${notification.postId}-${notification.title}',
                   ),
-                  subtitle: Text(
-                    notification.body,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+                  direction: DismissDirection.endToStart,
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: const Icon(Icons.delete_outline, color: Colors.white),
                   ),
-                  onTap: () => _handleNotificationClick(context, notification),
+                  onDismissed: (_) {
+                    provider.deleteNotification(notification);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Notification deleted')),
+                    );
+                  },
+                  child: ListTile(
+                    leading: notification.imageUrl != null
+                        ? Image.network(
+                            notification.imageUrl!,
+                            width: 50,
+                            height: 50,
+                            fit: BoxFit.cover,
+                          )
+                        : const Icon(Icons.notifications),
+                    title: Text(
+                      notification.title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    subtitle: Text(
+                      notification.body,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    onTap: () => _handleNotificationClick(context, notification),
+                  ),
                 );
               },
             ),
