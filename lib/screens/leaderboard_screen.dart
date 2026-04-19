@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:the_chenab_times/services/auth_service.dart';
-import 'package:the_chenab_times/utils/avatar_helper.dart';
 
 class LeaderboardScreen extends StatefulWidget {
   const LeaderboardScreen({super.key});
@@ -110,17 +109,10 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                     children: [
                       _RankBadge(rank: index + 1),
                       const SizedBox(width: 14),
-                      CircleAvatar(
+                      _LeaderboardAvatar(
+                        name: entry.name,
+                        profilePhoto: entry.profilePhoto,
                         radius: 18,
-                        backgroundColor: isDark
-                            ? const Color(0xFF252525)
-                            : const Color(0xFFF2E2CA),
-                        backgroundImage: NetworkImage(
-                          getUserAvatar(
-                            '${entry.name}@thechenabtimes.local',
-                            null,
-                          ),
-                        ),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -206,5 +198,74 @@ class _RankBadge extends StatelessWidget {
         style: TextStyle(color: color, fontWeight: FontWeight.w900),
       ),
     );
+  }
+}
+
+class _LeaderboardAvatar extends StatefulWidget {
+  const _LeaderboardAvatar({
+    required this.name,
+    required this.profilePhoto,
+    required this.radius,
+  });
+
+  final String name;
+  final String? profilePhoto;
+  final double radius;
+
+  @override
+  State<_LeaderboardAvatar> createState() => _LeaderboardAvatarState();
+}
+
+class _LeaderboardAvatarState extends State<_LeaderboardAvatar> {
+  bool _imageFailed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasProfilePhoto =
+        !_imageFailed &&
+        widget.profilePhoto != null &&
+        widget.profilePhoto!.trim().isNotEmpty;
+    final initials = _buildInitials(widget.name);
+
+    return CircleAvatar(
+      radius: widget.radius,
+      backgroundColor: isDark
+          ? const Color(0xFF252525)
+          : const Color(0xFFF2E2CA),
+      backgroundImage: hasProfilePhoto
+          ? NetworkImage(widget.profilePhoto!.trim())
+          : null,
+      onBackgroundImageError: hasProfilePhoto
+          ? (_, __) {
+              if (!mounted) return;
+              setState(() => _imageFailed = true);
+            }
+          : null,
+      child: hasProfilePhoto
+          ? null
+          : Text(
+              initials,
+              style: const TextStyle(
+                fontWeight: FontWeight.w800,
+                fontSize: 13,
+                color: Color(0xFF8C1D18),
+              ),
+            ),
+    );
+  }
+
+  String _buildInitials(String name) {
+    final parts = name
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((part) => part.isNotEmpty)
+        .toList();
+    if (parts.isEmpty) return 'U';
+    if (parts.length == 1) {
+      return parts.first.substring(0, 1).toUpperCase();
+    }
+    return (parts.first.substring(0, 1) + parts.last.substring(0, 1))
+        .toUpperCase();
   }
 }

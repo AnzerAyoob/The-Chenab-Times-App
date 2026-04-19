@@ -20,13 +20,19 @@ class AuthException implements Exception {
 
 class LeaderboardEntry {
   final String name;
+  final String? profilePhoto;
   final int bestStreak;
 
-  const LeaderboardEntry({required this.name, required this.bestStreak});
+  const LeaderboardEntry({
+    required this.name,
+    this.profilePhoto,
+    required this.bestStreak,
+  });
 
   factory LeaderboardEntry.fromMap(Map<String, dynamic> map) {
     return LeaderboardEntry(
       name: '${map['name'] ?? 'User'}',
+      profilePhoto: map['profile_photo']?.toString(),
       bestStreak: map['best_streak'] is int
           ? map['best_streak'] as int
           : int.tryParse('${map['best_streak'] ?? 0}') ?? 0,

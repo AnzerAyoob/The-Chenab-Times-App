@@ -170,7 +170,10 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
         gradient: LinearGradient(
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
-          colors: [colorScheme.background, colorScheme.surface],
+          colors: [
+            colorScheme.surface,
+            colorScheme.surface.withValues(alpha: 0.94),
+          ],
         ),
       ),
       child: SafeArea(
@@ -243,7 +246,10 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [colorScheme.surface, colorScheme.background],
+          colors: [
+            colorScheme.surface,
+            colorScheme.surface.withValues(alpha: 0.92),
+          ],
         ),
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
@@ -421,7 +427,7 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
                             end: Alignment.bottomRight,
                             colors: [
                               colorScheme.surface,
-                              colorScheme.background,
+                              colorScheme.surface.withValues(alpha: 0.92),
                             ],
                           ),
                           borderRadius: BorderRadius.circular(14),
@@ -589,7 +595,10 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
                     gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
-                      colors: [colorScheme.surface, colorScheme.background],
+                      colors: [
+                        colorScheme.surface,
+                        colorScheme.surface.withValues(alpha: 0.92),
+                      ],
                     ),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
@@ -1343,7 +1352,10 @@ class _ScorePill extends StatelessWidget {
         gradient: LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [colorScheme.surface, colorScheme.background],
+          colors: [
+            colorScheme.surface,
+            colorScheme.surface.withValues(alpha: 0.92),
+          ],
         ),
         borderRadius: BorderRadius.circular(999),
         border: Border.all(

@@ -106,7 +106,7 @@ class _HomeScreenState extends State<HomeScreen>
               : (locationService.weatherLabel ?? 'Tap to set'));
 
     return Scaffold(
-      backgroundColor: colorScheme.background,
+      backgroundColor: colorScheme.surface,
       body: SafeArea(
         child: Column(
           children: [
@@ -116,7 +116,10 @@ class _HomeScreenState extends State<HomeScreen>
                 gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
-                  colors: [colorScheme.background, colorScheme.surface],
+                  colors: [
+                    colorScheme.surface,
+                    colorScheme.surface.withValues(alpha: 0.94),
+                  ],
                 ),
               ),
               child: Container(
