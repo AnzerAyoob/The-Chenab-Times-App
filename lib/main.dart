@@ -36,6 +36,14 @@ const MethodChannel _deepLinkChannel = MethodChannel(
   'thechenabtimes/deep_links',
 );
 
+int? _parseNotificationPostId(Map<String, dynamic> data) {
+  final value = data['post_id'] ?? data['postId'] ?? data['id'];
+  if (value == null) return null;
+  if (value is int) return value;
+  if (value is num) return value.toInt();
+  return int.tryParse(value.toString().trim());
+}
+
 void _openChenabLinkInApp(String? link) {
   unawaited(_openChenabLinkInAppAsync(link));
 }
@@ -92,7 +100,7 @@ Future<void> _firebaseBackgroundHandler(RemoteMessage message) async {
       imageUrl: data["image"],
       receivedAt: DateTime.now(),
       article: null,
-      postId: int.tryParse(data["post_id"] ?? ""),
+      postId: _parseNotificationPostId(data),
     );
     await notificationProvider.addNotification(model);
   }
@@ -142,7 +150,7 @@ void main() async {
               imageUrl: data["image"],
               receivedAt: DateTime.now(),
               article: null,
-              postId: int.tryParse(data["post_id"] ?? ""),
+              postId: _parseNotificationPostId(data),
             );
             await notificationProvider.addNotification(model);
             // Show rich notification with image
@@ -179,7 +187,7 @@ void main() async {
           RemoteMessage message,
         ) async {
           final data = message.data;
-          final postId = int.tryParse(data["post_id"] ?? "");
+          final postId = _parseNotificationPostId(data);
           if (postId != null) {
             Article? article = await RssService().fetchArticleById(postId);
             if (article != null) {
@@ -201,7 +209,7 @@ void main() async {
             .getInitialMessage();
         if (initialMessage != null) {
           final data = initialMessage.data;
-          final postId = int.tryParse(data["post_id"] ?? "");
+          final postId = _parseNotificationPostId(data);
           if (postId != null) {
             Article? article = await RssService().fetchArticleById(postId);
             if (article != null) {

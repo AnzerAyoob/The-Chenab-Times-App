@@ -47,13 +47,20 @@ class NotificationModel {
       notificationId: map['notification_id'] ?? '',
       title: map['title'] ?? 'No Title',
       body: map['body'] ?? 'No Body',
-      imageUrl: map['image_url'],
+      imageUrl: map['image_url']?.toString(),
       receivedAt: map['received_at'] != null
           ? DateTime.tryParse(map['received_at']) ?? DateTime.now()
           : DateTime.now(),
       article: parsedArticle,
-      postId: map['post_id'] != null ? map['post_id'] as int : null,
+      postId: _parsePostId(map['post_id']),
     );
+  }
+
+  static int? _parsePostId(dynamic value) {
+    if (value == null) return null;
+    if (value is int) return value;
+    if (value is num) return value.toInt();
+    return int.tryParse(value.toString().trim());
   }
 
   Map<String, dynamic> toMap() {
