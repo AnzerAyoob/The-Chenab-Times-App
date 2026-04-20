@@ -45,8 +45,13 @@ class _ArticleScreenState extends State<ArticleScreen> {
         loading = false;
       });
     } catch (e) {
+      final fallbackSummary = HtmlHelper.stripAndUnescape(
+        article.excerpt ?? '',
+      ).trim();
       setState(() {
-        summary = article.excerpt;
+        summary = fallbackSummary.isNotEmpty
+            ? fallbackSummary
+            : 'Summary not available at this moment. Please read full article.';
         loading = false;
       });
     }

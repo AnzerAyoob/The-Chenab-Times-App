@@ -39,7 +39,7 @@ class SummarizationService {
       }
     }
 
-    String articleText = _prepareArticleText(rawText);
+    final articleText = _prepareArticleText(rawText);
 
     debugPrint('Summarizer cleaned length: ${articleText.length}');
 
@@ -69,13 +69,12 @@ class SummarizationService {
       debugPrint('Summarizer error: $e');
     }
 
-    // fallback 1: WordPress excerpt
     summary ??= _excerptFallback(excerpt);
-
-    // fallback 2: final message
     summary ??= _finalFallback();
 
-    if (articleLink != null && summary.isNotEmpty) {
+    if (articleLink != null &&
+        summary.isNotEmpty &&
+        summary != _finalFallback()) {
       await _db.cacheSummary(articleLink, summary);
     }
 
@@ -85,9 +84,9 @@ class SummarizationService {
   String _prepareArticleText(String text) {
     final cleanText = HtmlHelper.stripAndUnescape(
       text,
-    ).replaceAll(RegExp(r'\\s+'), ' ').trim();
+    ).replaceAll(RegExp(r'\s+'), ' ').trim();
 
-    if (cleanText.length < 1200) return cleanText;
+    if (cleanText.length <= 2500) return cleanText;
 
     return cleanText.substring(0, 2500);
   }
@@ -97,7 +96,7 @@ class SummarizationService {
 
     final cleanExcerpt = HtmlHelper.stripAndUnescape(
       excerpt,
-    ).replaceAll(RegExp(r'\\s+'), ' ').trim();
+    ).replaceAll(RegExp(r'\s+'), ' ').trim();
 
     if (cleanExcerpt.length < 30) return null;
 
@@ -105,6 +104,6 @@ class SummarizationService {
   }
 
   String _finalFallback() {
-    return 'Summary not available at the moment. Please read full article.';
+    return 'Summary not available at this moment. Please read full article.';
   }
 }
