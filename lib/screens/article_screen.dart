@@ -59,7 +59,6 @@ class _ArticleScreenState extends State<ArticleScreen> {
         HtmlHelper.stripAndUnescape(article.title ?? '');
 
     final imageUrl =
-        article.featuredImage ??
         article.imageUrl ??
         '';
 
