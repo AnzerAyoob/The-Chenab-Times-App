@@ -42,17 +42,7 @@ class SummarizationService {
 
     String articleText = _prepareArticleText(rawText);
 
-    if (articleText.length < 800 &&
-        articleLink != null &&
-        articleLink.isNotEmpty) {
-      final extractedText = await _extractArticleTextFromHtml(articleLink);
-
-      if (extractedText.isNotEmpty) {
-        articleText = extractedText;
-      }
-    }
-
-    debugPrint('Summarizer article length: ${articleText.length}');
+    debugPrint('Summarizer cleaned length: ${articleText.length}');
 
     String? summary;
 
@@ -61,7 +51,7 @@ class SummarizationService {
           .post(
             Uri.parse(_summaryEndpoint),
             headers: const {'Content-Type': 'application/json'},
-            body: jsonEncode({'text': articleText}),
+            body: jsonEncode({'article': articleText}),
           )
           .timeout(const Duration(seconds: 20));
 
@@ -80,8 +70,10 @@ class SummarizationService {
       debugPrint('Summarizer error: $e');
     }
 
+    // fallback 1: WordPress excerpt
     summary ??= _excerptFallback(excerpt);
 
+    // fallback 2: final message
     summary ??= _finalFallback();
 
     if (articleLink != null && summary.isNotEmpty) {
@@ -91,21 +83,6 @@ class SummarizationService {
     return summary;
   }
 
-  Future<String> _extractArticleTextFromHtml(String articleLink) async {
-    try {
-      final response = await http
-          .get(Uri.parse(articleLink))
-          .timeout(const Duration(seconds: 20));
-
-      if (response.statusCode != 200) return '';
-
-      final html = utf8.decode(response.bodyBytes);
-      return _prepareHtmlArticleText(html);
-    } catch (_) {
-      return '';
-    }
-  }
-
   String _prepareArticleText(String text) {
     final cleanText = HtmlHelper.stripAndUnescape(text)
         .replaceAll(RegExp(r'\\s+'), ' ')
@@ -113,18 +90,7 @@ class SummarizationService {
 
     if (cleanText.length < 1200) return cleanText;
 
-    return cleanText.substring(0, 4500);
-  }
-
-  String _prepareHtmlArticleText(String html) {
-    final paragraphs = RegExp(r'<p[^>]*>(.*?)</p>', dotAll: true)
-        .allMatches(html)
-        .map((e) => HtmlHelper.stripAndUnescape(e.group(1) ?? ''))
-        .map((e) => e.replaceAll(RegExp(r'\\s+'), ' ').trim())
-        .where((e) => e.length > 60)
-        .toList();
-
-    return paragraphs.join(' ');
+    return cleanText.substring(0, 2500);
   }
 
   String? _excerptFallback(String? excerpt) {
@@ -140,6 +106,6 @@ class SummarizationService {
   }
 
   String _finalFallback() {
-    return 'Summary not available at this moment. Please read full article.';
+    return 'Summary not available at the moment. Please read full article.';
   }
 }
