@@ -34,8 +34,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
 
   Future<void> loadSummary() async {
     try {
-      final result =
-          await SummarizationService.instance.summarizeArticle(
+      final result = await SummarizationService.instance.summarizeArticle(
         article.content ?? '',
         articleLink: article.link,
         excerpt: article.excerpt,
@@ -55,12 +54,9 @@ class _ArticleScreenState extends State<ArticleScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final title =
-        HtmlHelper.stripAndUnescape(article.title ?? '');
+    final title = HtmlHelper.stripAndUnescape(article.title ?? '');
 
-    final imageUrl =
-        article.imageUrl ??
-        '';
+    final imageUrl = article.imageUrl ?? '';
 
     return Scaffold(
       backgroundColor: const Color(0xfff6f1eb),
@@ -87,7 +83,6 @@ class _ArticleScreenState extends State<ArticleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-
             /// IMAGE
             if (imageUrl.isNotEmpty)
               Stack(
@@ -97,10 +92,8 @@ class _ArticleScreenState extends State<ArticleScreen> {
                     width: double.infinity,
                     height: 220,
                     fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 220,
-                      color: Colors.grey.shade300,
-                    ),
+                    errorBuilder: (_, __, ___) =>
+                        Container(height: 220, color: Colors.grey.shade300),
                   ),
 
                   Positioned(
@@ -118,10 +111,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
                       ),
                       child: const Text(
                         "Quick summary crafted for fast reading",
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: Colors.white, fontSize: 13),
                       ),
                     ),
                   ),
@@ -138,16 +128,12 @@ class _ArticleScreenState extends State<ArticleScreen> {
                 decoration: BoxDecoration(
                   color: const Color(0xfff8f3ed),
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(
-                    color: const Color(0xffe6d7c9),
-                  ),
+                  border: Border.all(color: const Color(0xffe6d7c9)),
                 ),
 
                 child: Column(
-                  crossAxisAlignment:
-                      CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-
                     /// LABEL
                     Container(
                       padding: const EdgeInsets.symmetric(
@@ -156,8 +142,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: const Color(0xff9f1d1d),
-                        borderRadius:
-                            BorderRadius.circular(40),
+                        borderRadius: BorderRadius.circular(40),
                       ),
                       child: const Text(
                         "READ IN SHORT",
@@ -187,18 +172,12 @@ class _ArticleScreenState extends State<ArticleScreen> {
                     /// SUMMARY BOX
                     if (loading)
                       const Padding(
-                        padding: EdgeInsets.symmetric(
-                            vertical: 20),
-                        child: Center(
-                          child:
-                              CircularProgressIndicator(),
-                        ),
+                        padding: EdgeInsets.symmetric(vertical: 20),
+                        child: Center(child: CircularProgressIndicator()),
                       )
-                    else if (summary != null &&
-                        summary!.trim().isNotEmpty)
+                    else if (summary != null && summary!.trim().isNotEmpty)
                       Text(
-                        HtmlHelper.stripAndUnescape(
-                            summary!),
+                        HtmlHelper.stripAndUnescape(summary!),
                         style: const TextStyle(
                           fontSize: 16,
                           height: 1.6,
@@ -208,10 +187,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
                     else
                       const Text(
                         "Summary not available at this moment. Please read full article.",
-                        style: TextStyle(
-                          fontSize: 16,
-                          color: Colors.black54,
-                        ),
+                        style: TextStyle(fontSize: 16, color: Colors.black54),
                       ),
 
                     const SizedBox(height: 22),
@@ -221,16 +197,10 @@ class _ArticleScreenState extends State<ArticleScreen> {
                       width: double.infinity,
                       child: ElevatedButton(
                         style: ElevatedButton.styleFrom(
-                          backgroundColor:
-                              const Color(0xff9f1d1d),
-                          padding:
-                              const EdgeInsets.symmetric(
-                                  vertical: 14),
-                          shape:
-                              RoundedRectangleBorder(
-                            borderRadius:
-                                BorderRadius.circular(
-                                    30),
+                          backgroundColor: const Color(0xff9f1d1d),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
                           ),
                         ),
                         onPressed: () {
@@ -241,8 +211,7 @@ class _ArticleScreenState extends State<ArticleScreen> {
                           style: TextStyle(
                             fontSize: 16,
                             color: Colors.white,
-                            fontWeight:
-                                FontWeight.bold,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
                       ),

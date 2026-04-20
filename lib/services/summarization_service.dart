@@ -10,8 +10,7 @@ import 'database_service.dart';
 class SummarizationService {
   SummarizationService._internal();
 
-  static final SummarizationService instance =
-      SummarizationService._internal();
+  static final SummarizationService instance = SummarizationService._internal();
 
   static const _summaryEndpoint =
       'https://api.thechenabtimes.com/summarise.php';
@@ -84,9 +83,9 @@ class SummarizationService {
   }
 
   String _prepareArticleText(String text) {
-    final cleanText = HtmlHelper.stripAndUnescape(text)
-        .replaceAll(RegExp(r'\\s+'), ' ')
-        .trim();
+    final cleanText = HtmlHelper.stripAndUnescape(
+      text,
+    ).replaceAll(RegExp(r'\\s+'), ' ').trim();
 
     if (cleanText.length < 1200) return cleanText;
 
@@ -96,9 +95,9 @@ class SummarizationService {
   String? _excerptFallback(String? excerpt) {
     if (excerpt == null) return null;
 
-    final cleanExcerpt = HtmlHelper.stripAndUnescape(excerpt)
-        .replaceAll(RegExp(r'\\s+'), ' ')
-        .trim();
+    final cleanExcerpt = HtmlHelper.stripAndUnescape(
+      excerpt,
+    ).replaceAll(RegExp(r'\\s+'), ' ').trim();
 
     if (cleanExcerpt.length < 30) return null;
 
