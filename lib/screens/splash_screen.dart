@@ -62,67 +62,34 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFF0D0D0D),
+      backgroundColor: const Color(0xFF12100E),
       body: AnimatedOpacity(
         duration: const Duration(milliseconds: 700),
         opacity: _visible ? 1 : 0,
         child: Center(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Image.asset('lib/images/appheading.png', height: 72),
-                const SizedBox(height: 18),
-                const Text(
-                  'Independent digital news platform',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.w700,
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 10,
-                  runSpacing: 10,
-                  children: const [
-                    _IntroPill(label: 'Latest news'),
-                    _IntroPill(label: 'AI summaries'),
-                    _IntroPill(label: 'Offline reading'),
-                    _IntroPill(label: 'Learning tools'),
-                  ],
+          child: Container(
+            width: 132,
+            height: 132,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xFFFFF3D5), Color(0xFFE7B24A)],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: const Color(0xFF9B1C20).withValues(alpha: 0.28),
+                  blurRadius: 32,
+                  offset: const Offset(0, 18),
                 ),
               ],
             ),
+            child: ClipOval(
+              child: Image.asset('lib/images/appIco.png', fit: BoxFit.cover),
+            ),
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _IntroPill extends StatelessWidget {
-  const _IntroPill({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      decoration: BoxDecoration(
-        color: const Color(0xFF1A1A1A),
-        borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: const Color(0xFF2A2A2A)),
-      ),
-      child: Text(
-        label,
-        style: const TextStyle(
-          color: Color(0xFFF2E7D5),
-          fontWeight: FontWeight.w700,
         ),
       ),
     );
