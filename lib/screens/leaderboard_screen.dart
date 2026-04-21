@@ -87,7 +87,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
               return ListView(
                 children: const [
                   SizedBox(height: 180),
-                  Center(child: Text('No streaks yet. Be the first to play.')),
+                  Center(child: Text('No points yet. Be the first to play.')),
                 ],
               );
             }
@@ -138,7 +138,7 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
                         ),
                       ),
                       Text(
-                        '${entry.bestStreak}',
+                        '${entry.totalPoints}',
                         style: const TextStyle(
                           fontSize: 24,
                           fontWeight: FontWeight.w900,
@@ -159,13 +159,13 @@ class _LeaderboardScreenState extends State<LeaderboardScreen> {
   String _rankLabel(int rank) {
     switch (rank) {
       case 1:
-        return 'Diamond Streak';
+        return 'Diamond Points';
       case 2:
-        return 'Gold Streak';
+        return 'Gold Points';
       case 3:
-        return 'Bronze Streak';
+        return 'Bronze Points';
       default:
-        return 'Top 10 Streak';
+        return 'Top 10 Points';
     }
   }
 }

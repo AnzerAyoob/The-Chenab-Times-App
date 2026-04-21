@@ -22,11 +22,13 @@ class LeaderboardEntry {
   final String name;
   final String? profilePhoto;
   final int bestStreak;
+  final int totalPoints;
 
   const LeaderboardEntry({
     required this.name,
     this.profilePhoto,
     required this.bestStreak,
+    required this.totalPoints,
   });
 
   factory LeaderboardEntry.fromMap(Map<String, dynamic> map) {
@@ -36,6 +38,9 @@ class LeaderboardEntry {
       bestStreak: map['best_streak'] is int
           ? map['best_streak'] as int
           : int.tryParse('${map['best_streak'] ?? 0}') ?? 0,
+      totalPoints: map['total_points'] is int
+          ? map['total_points'] as int
+          : int.tryParse('${map['total_points'] ?? 0}') ?? 0,
     );
   }
 }
@@ -50,6 +55,12 @@ class AuthService extends ChangeNotifier {
   static const String _userKey = 'auth_user';
   static const String _bestSyncedStreakKey = 'games_best_synced_streak';
   static const String _bestLocalStreakKey = 'games_best_local_scramble_streak';
+  static const String _syncedTotalPointsKey = 'games_synced_total_points';
+  static const String _scrambleStreakKey = 'games_scramble_streak';
+  static const String _vocabScoreKey = 'games_vocab_score';
+  static const String _sentenceScoreKey = 'games_sentence_score';
+  static const String _spellingScoreKey = 'games_spelling_score';
+  static const String _crosswordScoreKey = 'games_crossword_score';
 
   final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
   final http.Client _client = http.Client();
@@ -60,6 +71,7 @@ class AuthService extends ChangeNotifier {
   bool _busy = false;
   int _streakSyncVersion = 0;
   int _serverBestStreakHint = 0;
+  int _serverTotalPointsHint = 0;
 
   UserModel? get currentUser => _currentUser;
   bool get isAuthenticated => _token != null && _currentUser != null;
@@ -76,11 +88,13 @@ class AuthService extends ChangeNotifier {
       if (userJson != null && userJson.isNotEmpty) {
         _currentUser = UserModel.fromJson(userJson);
         _serverBestStreakHint = _currentUser?.bestStreak ?? 0;
+        _serverTotalPointsHint = _currentUser?.totalPoints ?? 0;
       }
     } catch (_) {
       _token = null;
       _currentUser = null;
       _serverBestStreakHint = 0;
+      _serverTotalPointsHint = 0;
     }
 
     _initialized = true;
@@ -115,7 +129,7 @@ class AuthService extends ChangeNotifier {
       final user = UserModel.fromMap(userMap);
       await _persistSession(token: token, user: user);
       try {
-        await syncLocalBestStreak();
+        await syncLocalGameProgress();
       } catch (_) {}
       return user;
     } on AuthException {
@@ -148,7 +162,7 @@ class AuthService extends ChangeNotifier {
         final user = UserModel.fromMap(payload['user'] as Map<String, dynamic>);
         await _persistSession(token: '${payload['token']}', user: user);
         try {
-          await syncLocalBestStreak();
+          await syncLocalGameProgress();
         } catch (_) {}
         return user;
       }
@@ -169,10 +183,12 @@ class AuthService extends ChangeNotifier {
     _token = null;
     _currentUser = null;
     _serverBestStreakHint = 0;
+    _serverTotalPointsHint = 0;
     await _secureStorage.delete(key: _tokenKey);
     await _secureStorage.delete(key: _userKey);
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_bestSyncedStreakKey);
+    await prefs.remove(_syncedTotalPointsKey);
     notifyListeners();
   }
 
@@ -218,82 +234,122 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> syncStreak(int streak) async {
-    if (!isAuthenticated || streak <= 0) return;
+    final prefs = await SharedPreferences.getInstance();
+    await syncGameProgress(
+      bestStreak: streak,
+      totalPoints: _readLocalTotalPoints(prefs),
+    );
+  }
+
+  Future<void> syncGameProgress({
+    required int bestStreak,
+    required int totalPoints,
+  }) async {
+    if (!isAuthenticated || (bestStreak <= 0 && totalPoints <= 0)) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final localStreak = prefs.getInt('games_scramble_streak') ?? 0;
+    final localStreak = prefs.getInt(_scrambleStreakKey) ?? 0;
     final bestLocalStreak = prefs.getInt(_bestLocalStreakKey) ?? 0;
     final bestSyncedStreak = prefs.getInt(_bestSyncedStreakKey) ?? 0;
+    final syncedTotalPoints = prefs.getInt(_syncedTotalPointsKey) ?? 0;
+    final localTotalPoints = math.max(
+      _readLocalTotalPoints(prefs),
+      totalPoints,
+    );
     final knownServerStreak = math.max(
       _serverBestStreakHint,
       _currentUser?.bestStreak ?? 0,
     );
+    final knownServerTotalPoints = math.max(
+      _serverTotalPointsHint,
+      _currentUser?.totalPoints ?? 0,
+    );
     final mergedStreak = [
-      streak,
+      bestStreak,
       localStreak,
       bestLocalStreak,
       bestSyncedStreak,
       knownServerStreak,
     ].reduce(math.max);
+    final mergedTotalPoints = [
+      totalPoints,
+      localTotalPoints,
+      syncedTotalPoints,
+      knownServerTotalPoints,
+    ].reduce(math.max);
 
-    await _persistMergedLocalStreak(prefs, mergedStreak);
-    await _authorizedPost('/streak/update.php', body: {'streak': mergedStreak});
+    await _persistMergedGameProgress(
+      prefs,
+      mergedStreak: mergedStreak,
+      mergedTotalPoints: mergedTotalPoints,
+    );
+    await _authorizedPost(
+      '/streak/update.php',
+      body: {'streak': mergedStreak, 'total_points': mergedTotalPoints},
+    );
     await prefs.setInt(_bestSyncedStreakKey, mergedStreak);
+    await prefs.setInt(_syncedTotalPointsKey, mergedTotalPoints);
     _serverBestStreakHint = math.max(_serverBestStreakHint, mergedStreak);
-    await _updatePersistedUserBestStreak(mergedStreak);
+    _serverTotalPointsHint = math.max(
+      _serverTotalPointsHint,
+      mergedTotalPoints,
+    );
+    await _updatePersistedUserGameStats(
+      bestStreak: mergedStreak,
+      totalPoints: mergedTotalPoints,
+    );
     _streakSyncVersion++;
     notifyListeners();
   }
 
-  Future<void> syncLocalBestStreak() async {
+  Future<void> syncLocalGameProgress() async {
     if (!isAuthenticated) return;
 
     final prefs = await SharedPreferences.getInstance();
-    final localStreak = prefs.getInt('games_scramble_streak') ?? 0;
+    final localStreak = prefs.getInt(_scrambleStreakKey) ?? 0;
     final bestLocalStreak = prefs.getInt(_bestLocalStreakKey) ?? 0;
-    final serverBestStreak = await fetchServerBestStreak();
+    final localTotalPoints = _readLocalTotalPoints(prefs);
+    final syncedTotalPoints = prefs.getInt(_syncedTotalPointsKey) ?? 0;
+    final serverBestStreak = math.max(
+      _serverBestStreakHint,
+      _currentUser?.bestStreak ?? 0,
+    );
+    final serverTotalPoints = math.max(
+      _serverTotalPointsHint,
+      _currentUser?.totalPoints ?? 0,
+    );
     final mergedStreak = math.max(
       math.max(localStreak, bestLocalStreak),
       serverBestStreak,
     );
+    final mergedTotalPoints = math.max(
+      math.max(localTotalPoints, syncedTotalPoints),
+      serverTotalPoints,
+    );
 
-    await _persistMergedLocalStreak(prefs, mergedStreak);
+    await _persistMergedGameProgress(
+      prefs,
+      mergedStreak: mergedStreak,
+      mergedTotalPoints: mergedTotalPoints,
+    );
 
-    if (mergedStreak > 0) {
-      await syncStreak(mergedStreak);
+    if (mergedStreak > 0 || mergedTotalPoints > 0) {
+      await syncGameProgress(
+        bestStreak: mergedStreak,
+        totalPoints: mergedTotalPoints,
+      );
     } else {
       _streakSyncVersion++;
       notifyListeners();
     }
   }
 
+  Future<void> syncLocalBestStreak() async {
+    await syncLocalGameProgress();
+  }
+
   Future<int> fetchServerBestStreak() async {
-    if (!isAuthenticated || _currentUser == null) return 0;
-
-    var resolvedBestStreak = _serverBestStreakHint;
-    if (_currentUser!.bestStreak > resolvedBestStreak) {
-      resolvedBestStreak = _currentUser!.bestStreak;
-    }
-
-    try {
-      final entries = await fetchLeaderboard();
-      final normalizedName = _normalizeIdentity(_currentUser!.name);
-      final normalizedEmailPrefix = _normalizeIdentity(
-        _currentUser!.email.split('@').first,
-      );
-      for (final entry in entries) {
-        final normalizedEntryName = _normalizeIdentity(entry.name);
-        if (normalizedEntryName == normalizedName ||
-            normalizedEntryName == normalizedEmailPrefix) {
-          if (entry.bestStreak > resolvedBestStreak) {
-            resolvedBestStreak = entry.bestStreak;
-          }
-        }
-      }
-    } catch (_) {}
-
-    _serverBestStreakHint = resolvedBestStreak;
-    return resolvedBestStreak;
+    return math.max(_serverBestStreakHint, _currentUser?.bestStreak ?? 0);
   }
 
   Future<List<LeaderboardEntry>> fetchLeaderboard() async {
@@ -308,7 +364,11 @@ class AuthService extends ChangeNotifier {
             .whereType<Map<String, dynamic>>()
             .map(LeaderboardEntry.fromMap)
             .toList()
-          ..sort((a, b) => b.bestStreak.compareTo(a.bestStreak));
+          ..sort((a, b) {
+            final pointCompare = b.totalPoints.compareTo(a.totalPoints);
+            if (pointCompare != 0) return pointCompare;
+            return b.bestStreak.compareTo(a.bestStreak);
+          });
 
     return entries.take(10).toList();
   }
@@ -413,21 +473,41 @@ class AuthService extends ChangeNotifier {
     _token = token;
     _currentUser = user;
     _serverBestStreakHint = user.bestStreak;
+    _serverTotalPointsHint = user.totalPoints;
     await _secureStorage.write(key: _tokenKey, value: token);
     await _secureStorage.write(key: _userKey, value: user.toJson());
     notifyListeners();
   }
 
-  Future<void> _persistMergedLocalStreak(
-    SharedPreferences prefs,
-    int mergedStreak,
-  ) async {
-    await prefs.setInt('games_scramble_streak', mergedStreak);
+  Future<void> _persistMergedGameProgress(
+    SharedPreferences prefs, {
+    required int mergedStreak,
+    required int mergedTotalPoints,
+  }) async {
+    await prefs.setInt(_scrambleStreakKey, mergedStreak);
     await prefs.setInt(_bestLocalStreakKey, mergedStreak);
+    await prefs.setInt(_bestSyncedStreakKey, mergedStreak);
+    await prefs.setInt(_syncedTotalPointsKey, mergedTotalPoints);
   }
 
-  Future<void> _updatePersistedUserBestStreak(int streak) async {
-    if (_currentUser == null || streak <= _currentUser!.bestStreak) return;
+  int _readLocalTotalPoints(SharedPreferences prefs) {
+    return (prefs.getInt(_scrambleStreakKey) ?? 0) +
+        (prefs.getInt(_vocabScoreKey) ?? 0) +
+        (prefs.getInt(_sentenceScoreKey) ?? 0) +
+        (prefs.getInt(_spellingScoreKey) ?? 0) +
+        (prefs.getInt(_crosswordScoreKey) ?? 0);
+  }
+
+  Future<void> _updatePersistedUserGameStats({
+    required int bestStreak,
+    required int totalPoints,
+  }) async {
+    if (_currentUser == null) return;
+
+    if (bestStreak <= _currentUser!.bestStreak &&
+        totalPoints <= _currentUser!.totalPoints) {
+      return;
+    }
 
     _currentUser = UserModel(
       id: _currentUser!.id,
@@ -435,13 +515,10 @@ class AuthService extends ChangeNotifier {
       email: _currentUser!.email,
       photo: _currentUser!.photo,
       loginType: _currentUser!.loginType,
-      bestStreak: streak,
+      bestStreak: math.max(_currentUser!.bestStreak, bestStreak),
+      totalPoints: math.max(_currentUser!.totalPoints, totalPoints),
     );
     await _secureStorage.write(key: _userKey, value: _currentUser!.toJson());
-  }
-
-  String _normalizeIdentity(String value) {
-    return value.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), '');
   }
 
   Map<String, dynamic> _decodeMap(String body) {

@@ -27,6 +27,7 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   static const _lastCrosswordKey = 'games_last_crossword_index';
   static const _bestSyncedStreakKey = 'games_best_synced_streak';
   static const _bestLocalScrambleStreakKey = 'games_best_local_scramble_streak';
+  static const _syncedTotalPointsKey = 'games_synced_total_points';
 
   final Random _random = Random();
 
@@ -48,10 +49,11 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   int _lastCrosswordIndex = -1;
   int _bestSyncedStreak = 0;
   int _bestLocalScrambleStreak = 0;
+  int _syncedTotalPoints = 0;
   int _sessionBestStreak = 0;
   final List<int> _recentVocabIndexes = [];
   bool _loading = true;
-  bool _streakSyncPending = false;
+  bool _gameSyncPending = false;
   bool _syncingStreak = false;
   bool _wasLoggedIn = false;
 
@@ -71,7 +73,7 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     AuthService.instance.removeListener(_handleAuthStateChange);
-    _flushStreakSync();
+    _flushGameSync();
     _scrambleController.dispose();
     _crosswordController.dispose();
     super.dispose();
@@ -81,19 +83,19 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state == AppLifecycleState.resumed &&
         AuthService.instance.isAuthenticated) {
-      _syncAndReloadStreak();
+      _syncAndReloadGameProgress();
     }
     if (state == AppLifecycleState.inactive ||
         state == AppLifecycleState.paused ||
         state == AppLifecycleState.detached) {
-      _flushStreakSync();
+      _flushGameSync();
     }
   }
 
   void _handleAuthStateChange() {
     final isLoggedIn = AuthService.instance.isAuthenticated;
     if (isLoggedIn && !_wasLoggedIn) {
-      _syncAndReloadStreak();
+      _syncAndReloadGameProgress();
     }
     _wasLoggedIn = isLoggedIn;
   }
@@ -112,10 +114,12 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     _lastCrosswordIndex = prefs.getInt(_lastCrosswordKey) ?? -1;
     _bestSyncedStreak = prefs.getInt(_bestSyncedStreakKey) ?? 0;
     _bestLocalScrambleStreak = prefs.getInt(_bestLocalScrambleStreakKey) ?? 0;
+    _syncedTotalPoints = prefs.getInt(_syncedTotalPointsKey) ?? 0;
     _sessionBestStreak = max(_scrambleStreak, _bestLocalScrambleStreak);
-    _streakSyncPending =
+    _gameSyncPending =
         _scrambleStreak > _bestSyncedStreak ||
-        _bestLocalScrambleStreak > _bestSyncedStreak;
+        _bestLocalScrambleStreak > _bestSyncedStreak ||
+        _currentRawTotalPoints() > _syncedTotalPoints;
 
     _scramblePuzzle = _nextScramblePuzzle();
     _vocabQuestion = _nextVocabQuestion();
@@ -128,10 +132,10 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     }
   }
 
-  Future<void> _syncAndReloadStreak() async {
+  Future<void> _syncAndReloadGameProgress() async {
     if (!AuthService.instance.isAuthenticated) return;
     try {
-      await AuthService.instance.syncLocalBestStreak();
+      await AuthService.instance.syncLocalGameProgress();
       await _loadProgress();
     } catch (_) {}
   }
@@ -150,6 +154,15 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     await prefs.setInt(_lastCrosswordKey, _lastCrosswordIndex);
     await prefs.setInt(_bestSyncedStreakKey, _bestSyncedStreak);
     await prefs.setInt(_bestLocalScrambleStreakKey, _bestLocalScrambleStreak);
+    await prefs.setInt(_syncedTotalPointsKey, _syncedTotalPoints);
+  }
+
+  int _currentRawTotalPoints() {
+    return _scrambleStreak +
+        _vocabScore +
+        _sentenceScore +
+        _spellingScore +
+        _crosswordScore;
   }
 
   int _nextDifferentIndex(int length, int lastIndex) {
@@ -234,12 +247,7 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     final authService = context.watch<AuthService>();
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
-    final totalPoints =
-        _scrambleStreak +
-        _vocabScore +
-        _sentenceScore +
-        _spellingScore +
-        _crosswordScore;
+    final totalPoints = max(_currentRawTotalPoints(), _syncedTotalPoints);
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
@@ -782,12 +790,14 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
           _bestLocalScrambleStreak,
           _sessionBestStreak,
         );
-        _streakSyncPending = _sessionBestStreak > _bestSyncedStreak;
+        _gameSyncPending =
+            _sessionBestStreak > _bestSyncedStreak ||
+            _currentRawTotalPoints() > _syncedTotalPoints;
         _scramblePuzzle = _nextScramblePuzzle();
         _scrambleController.clear();
       });
       _showFeedback('Correct! Great spelling.', isSuccess: true);
-      _saveProgress().then((_) => _flushStreakSync());
+      _saveProgress().then((_) => _flushGameSync());
     } else {
       final sessionPeak = max(_sessionBestStreak, _scrambleStreak);
       setState(() => _scrambleStreak = 0);
@@ -796,15 +806,16 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
         _bestLocalScrambleStreak,
         _sessionBestStreak,
       );
-      _streakSyncPending = _bestLocalScrambleStreak > _bestSyncedStreak;
+      _gameSyncPending =
+          _bestLocalScrambleStreak > _bestSyncedStreak ||
+          _currentRawTotalPoints() > _syncedTotalPoints;
       _showFeedback(
         'Try again. Hint: ${_scramblePuzzle.hint}',
         isSuccess: false,
       );
-      _saveProgress().then((_) => _flushStreakSync());
+      _saveProgress().then((_) => _flushGameSync());
       return;
     }
-    _saveProgress();
   }
 
   void _submitVocab(String option) {
@@ -819,7 +830,8 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
       );
     }
     setState(() => _vocabQuestion = _nextVocabQuestion());
-    _saveProgress();
+    _gameSyncPending = _currentRawTotalPoints() > _syncedTotalPoints;
+    _saveProgress().then((_) => _flushGameSync());
   }
 
   void _submitSentence(String option) {
@@ -834,7 +846,8 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
       );
     }
     setState(() => _sentenceChallenge = _nextSentenceChallenge());
-    _saveProgress();
+    _gameSyncPending = _currentRawTotalPoints() > _syncedTotalPoints;
+    _saveProgress().then((_) => _flushGameSync());
   }
 
   void _submitSpellingBee(String option) {
@@ -849,7 +862,8 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
       );
     }
     setState(() => _spellingBeeQuestion = _nextSpellingBeeQuestion());
-    _saveProgress();
+    _gameSyncPending = _currentRawTotalPoints() > _syncedTotalPoints;
+    _saveProgress().then((_) => _flushGameSync());
   }
 
   void _submitCrossword() {
@@ -867,7 +881,8 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
         isSuccess: false,
       );
     }
-    _saveProgress();
+    _gameSyncPending = _currentRawTotalPoints() > _syncedTotalPoints;
+    _saveProgress().then((_) => _flushGameSync());
   }
 
   void _showFeedback(String message, {required bool isSuccess}) {
@@ -1283,8 +1298,8 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     return puzzles[_lastCrosswordIndex];
   }
 
-  Future<void> _flushStreakSync() async {
-    if (_syncingStreak || !_streakSyncPending) return;
+  Future<void> _flushGameSync() async {
+    if (_syncingStreak || !_gameSyncPending) return;
 
     final authService = AuthService.instance;
     final streakToSync = [
@@ -1292,16 +1307,23 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
       _sessionBestStreak,
       _scrambleStreak,
     ].reduce((a, b) => a > b ? a : b);
-    if (!authService.isAuthenticated || streakToSync <= _bestSyncedStreak) {
+    final totalPointsToSync = max(_currentRawTotalPoints(), _syncedTotalPoints);
+    final hasNewStreak = streakToSync > _bestSyncedStreak;
+    final hasNewPoints = totalPointsToSync > _syncedTotalPoints;
+    if (!authService.isAuthenticated || (!hasNewStreak && !hasNewPoints)) {
       return;
     }
 
     _syncingStreak = true;
     try {
-      await authService.syncStreak(streakToSync);
+      await authService.syncGameProgress(
+        bestStreak: streakToSync,
+        totalPoints: totalPointsToSync,
+      );
       _bestSyncedStreak = max(_bestSyncedStreak, streakToSync);
       _bestLocalScrambleStreak = max(_bestLocalScrambleStreak, streakToSync);
-      _streakSyncPending = false;
+      _syncedTotalPoints = max(_syncedTotalPoints, totalPointsToSync);
+      _gameSyncPending = false;
       await _saveProgress();
     } catch (_) {
       // Keep pending so the next app session can retry without interrupting play.

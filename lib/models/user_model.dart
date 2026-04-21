@@ -7,6 +7,7 @@ class UserModel {
   final String? photo;
   final String loginType;
   final int bestStreak;
+  final int totalPoints;
 
   const UserModel({
     required this.id,
@@ -15,6 +16,7 @@ class UserModel {
     this.photo,
     required this.loginType,
     this.bestStreak = 0,
+    this.totalPoints = 0,
   });
 
   factory UserModel.fromMap(Map<String, dynamic> map) {
@@ -27,6 +29,9 @@ class UserModel {
       bestStreak: map['best_streak'] is int
           ? map['best_streak'] as int
           : int.tryParse('${map['best_streak'] ?? 0}') ?? 0,
+      totalPoints: map['total_points'] is int
+          ? map['total_points'] as int
+          : int.tryParse('${map['total_points'] ?? 0}') ?? 0,
     );
   }
 
@@ -38,6 +43,7 @@ class UserModel {
       'photo': photo,
       'login_type': loginType,
       'best_streak': bestStreak,
+      'total_points': totalPoints,
     };
   }
 
