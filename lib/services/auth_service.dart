@@ -9,6 +9,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:the_chenab_times/models/article_model.dart';
 import 'package:the_chenab_times/models/user_model.dart';
 
+class LeaderboardSocialAccount {
+  final String label;
+  final String url;
+
+  const LeaderboardSocialAccount({required this.label, required this.url});
+
+  factory LeaderboardSocialAccount.fromMap(Map<String, dynamic> map) {
+    return LeaderboardSocialAccount(
+      label: '${map['label'] ?? map['service'] ?? 'Profile'}',
+      url: '${map['url'] ?? map['link'] ?? ''}',
+    );
+  }
+}
+
 class AuthException implements Exception {
   final String message;
 
@@ -23,15 +37,28 @@ class LeaderboardEntry {
   final String? profilePhoto;
   final int bestStreak;
   final int totalPoints;
+  final String? profileUrl;
+  final String? bio;
+  final String? company;
+  final String? jobTitle;
+  final String? location;
+  final List<LeaderboardSocialAccount> socialAccounts;
 
   const LeaderboardEntry({
     required this.name,
     this.profilePhoto,
     required this.bestStreak,
     required this.totalPoints,
+    this.profileUrl,
+    this.bio,
+    this.company,
+    this.jobTitle,
+    this.location,
+    this.socialAccounts = const [],
   });
 
   factory LeaderboardEntry.fromMap(Map<String, dynamic> map) {
+    final rawAccounts = map['social_accounts'];
     return LeaderboardEntry(
       name: '${map['name'] ?? 'User'}',
       profilePhoto: map['profile_photo']?.toString(),
@@ -41,8 +68,32 @@ class LeaderboardEntry {
       totalPoints: map['total_points'] is int
           ? map['total_points'] as int
           : int.tryParse('${map['total_points'] ?? 0}') ?? 0,
+      profileUrl: map['profile_url']?.toString(),
+      bio: map['bio']?.toString(),
+      company: map['company']?.toString(),
+      jobTitle: map['job_title']?.toString(),
+      location: map['location']?.toString(),
+      socialAccounts: rawAccounts is List
+          ? rawAccounts
+                .whereType<Map>()
+                .map(
+                  (account) =>
+                      account.map((key, value) => MapEntry('$key', value)),
+                )
+                .map(LeaderboardSocialAccount.fromMap)
+                .where((account) => account.url.trim().isNotEmpty)
+                .toList()
+          : const [],
     );
   }
+
+  bool get hasProfileShoutout =>
+      (bio?.trim().isNotEmpty ?? false) ||
+      (company?.trim().isNotEmpty ?? false) ||
+      (jobTitle?.trim().isNotEmpty ?? false) ||
+      (location?.trim().isNotEmpty ?? false) ||
+      (profileUrl?.trim().isNotEmpty ?? false) ||
+      socialAccounts.isNotEmpty;
 }
 
 class AuthService extends ChangeNotifier {

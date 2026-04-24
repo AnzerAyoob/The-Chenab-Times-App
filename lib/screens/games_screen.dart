@@ -1153,7 +1153,16 @@ class _GamesScreenState extends State<GamesScreen> with WidgetsBindingObserver {
     if (_recentVocabIndexes.length > 5) {
       _recentVocabIndexes.removeAt(0);
     }
-    return questions[_lastVocabIndex];
+    return _shuffledVocabQuestion(questions[_lastVocabIndex]);
+  }
+
+  _VocabQuestion _shuffledVocabQuestion(_VocabQuestion question) {
+    final options = List<String>.from(question.options)..shuffle(_random);
+    return _VocabQuestion(
+      word: question.word,
+      answer: question.answer,
+      options: options,
+    );
   }
 
   int _nextIndexAvoidingRecent(int length, List<int> recentIndexes) {
